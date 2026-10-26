@@ -13,8 +13,19 @@ Le document vivant d'un contexte, qui énonce au présent les règles que tient 
 _Avoid_ : spec (seul), spec vivante, PRD
 
 **Spec de changement** (*Change spec*) :
-La description d'un changement à venir, telle que la produit `/to-spec`. Elle décrit un écart, et cesse de servir une fois le changement livré.
-_Avoid_ : spec (seul), PRD
+La description d'un changement à venir, telle que la produit `/to-spec`, parente de ses tickets. Elle cesse de servir une fois le changement livré.
+_Avoid_ : spec (seul), PRD, lot
+
+**Ticket** (*Ticket*) :
+Une tranche d'une spec de changement, assez complète pour guider seul un implémenteur : son écart, sa conception technique et sa vérification.
+_Avoid_ : story, US
+
+**Écart** (*Delta*) :
+Ce qu'un ticket change à la spec fonctionnelle et au glossaire d'un contexte, sous forme de blocs.
+_Avoid_ : delta de spec
+
+**Bloc** (*Block*) :
+Le texte exact d'un changement à un paragraphe d'une spec fonctionnelle ou d'un glossaire, à recopier mot pour mot.
 
 **Dérive** (*Drift*) :
 Un code de `main` qui contredit la spec fonctionnelle de `main`, ou un comportement de `main` qu'aucune spec fonctionnelle ne décrit.
