@@ -36,3 +36,11 @@ Une dérive où le code contredit la spec fonctionnelle.
 **Lacune** (*Gap*) :
 Ce qu'aucune spec fonctionnelle ne décrit : un comportement du code, ou une intention, voulue ou encore à décider.
 _Avoid_ : écart, trou
+
+**Grille** (*Grid*) :
+Une skill d'évaluation qu'un projet déclare à un ou plusieurs points d'accroche, sur une zone de code. Chacune de ses remarques est corrigée ou justifiée ; sa note, si elle en donne une, ne fait qu'informer.
+_Avoid_ : standard, checklist
+
+**Point d'accroche** (*Hook point*) :
+Une étape du flux où un projet branche ses grilles : la spec, la conception ou la revue.
+_Avoid_ : hook (seul), étape
