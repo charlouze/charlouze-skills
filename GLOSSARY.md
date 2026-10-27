@@ -63,3 +63,7 @@ _Avoid_ : série, lot, boucle
 **Arbitrage** (*Ruling*) :
 Une décision que l'agent prend sans l'humain, consignée pour lui dans la PR avec sa raison et ce qu'elle coûte si elle est fausse.
 _Avoid_ : ruling, choix d'implémentation
+
+**Adoption** (*Adoption*) :
+La passe qui décrit dans sa spec fonctionnelle tout ce que fait déjà un contexte, depuis ses documents ou l'humain.
+_Avoid_ : migration, rétro-spec
