@@ -44,3 +44,14 @@ _Avoid_ : standard, checklist
 **Point d'accroche** (*Hook point*) :
 Une étape du flux où un projet branche ses grilles : la spec, la conception ou la revue.
 _Avoid_ : hook (seul), étape
+
+**Pile** (*Stack*) :
+Une suite de PR posées chacune sur la précédente, revues une à une et fusionnées ensemble.
+_Avoid_ : chaîne, série
+
+**Couche** (*Layer*) :
+Une PR d'une pile.
+
+**Finalisation** (*Finalization*) :
+La passe qui, une fois toute la pile approuvée, fond chaque correction dans le commit qu'elle vise, sans changer le diff d'aucune couche.
+_Avoid_ : nettoyage, squash
