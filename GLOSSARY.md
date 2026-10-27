@@ -55,3 +55,11 @@ Une PR d'une pile.
 **Finalisation** (*Finalization*) :
 La passe qui, une fois toute la pile approuvée, fond chaque correction dans le commit qu'elle vise, sans changer le diff d'aucune couche.
 _Avoid_ : nettoyage, squash
+
+**Enchaînement** (*Run*) :
+La passe où l'agent livre seul un ou plusieurs tickets d'une spec de changement en une pile, une couche par ticket.
+_Avoid_ : série, lot, boucle
+
+**Arbitrage** (*Ruling*) :
+Une décision que l'agent prend sans l'humain, consignée pour lui dans la PR avec sa raison et ce qu'elle coûte si elle est fausse.
+_Avoid_ : ruling, choix d'implémentation
