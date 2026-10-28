@@ -64,6 +64,10 @@ _Avoid_ : série, lot, boucle
 Une décision que l'agent prend sans l'humain, consignée pour lui dans la PR avec sa raison et ce qu'elle coûte si elle est fausse.
 _Avoid_ : ruling, choix d'implémentation
 
+**Reprise** (*Rework*) :
+La passe où l'agent traite les commentaires de revue d'une pile, couche par couche.
+_Avoid_ : correction (c'est un `fixup!`), retours
+
 **Adoption** (*Adoption*) :
 La passe qui décrit dans sa spec fonctionnelle tout ce que fait déjà un contexte, depuis ses documents ou l'humain.
 _Avoid_ : migration, rétro-spec
