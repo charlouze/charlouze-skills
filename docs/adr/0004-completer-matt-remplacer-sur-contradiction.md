@@ -1,0 +1,10 @@
+# Le plugin complète les skills de Matt, et ne remplace que celles qu'une consigne explicite oppose à nos besoins
+
+Une skill de Matt est complétée par des consignes que pointe le `CLAUDE.md` du projet (des fichiers de `docs/agents/`), le mécanisme de préférences qu'il prévoit, tant que rien de ce qu'on y ajoute ne contredit ce qu'elle dit. Elle n'est remplacée par une skill à nous que si l'une de ses consignes explicites s'y oppose, car le modèle ne suit pas de façon fiable un `CLAUDE.md` qui contredit la skill qu'il exécute. Ainsi `/to-spec` est complétée (restreindre ses `Implementation Decisions` et ajouter `Risks` ne contredit pas son modèle), alors que `/to-tickets` est remplacée : son modèle d'issue est imposé et elle écarte chemins et code, que le ticket complet porte. Tout remplacer donnait la maîtrise complète, mais coupait le plugin des évolutions de Matt et doublait le contexte de chaque skill ; ne rien remplacer était impossible.
+
+## Consequences
+
+- **Remplacées** : `to-tickets` par `slice-change-spec`, une copie adaptée et créditée qui ne suit pas les évolutions de l'originale ; `implement-spec` par `run-change-spec` (ADR 0003). Les skills de Matt restent tapables : le bloc `CLAUDE.md` du projet demande à l'agent de nommer la remplaçante et de s'arrêter si l'humain en lance une.
+- **Complétées** : `to-spec` par `docs/agents/change-spec.md` ; `code-review` par `grid-review`, que la même ligne de `CLAUDE.md` joint à toute revue (ADR 0001), si bien que `/implement` reçoit l'axe Grilles sans être remplacée ; `domain-modeling` par `docs/agents/domain.md` ; `triage` par `docs/agents/triage-labels.md` ; `pr` par les sections que `run-change-spec` ajoute à son modèle.
+- **Ajoutées** : `grid-review` (les trois points d'accroche), `finalize-stack` et `writing-functional-specs`. Aucune ne reprend un nom court de Matt : entre deux plugins, ce nom va au premier activé.
+- Les fichiers de `docs/agents/` que le plugin lit portent des noms anglais fixes : `grids.md`, `run.md`, `git-history.md`, `change-spec.md`.
