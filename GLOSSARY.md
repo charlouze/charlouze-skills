@@ -8,6 +8,18 @@ Plugin de skills d'ingénierie qui se pose par-dessus celui de Matt Pocock, pour
 Une partie du domaine métier d'un projet, avec son propre langage, son glossaire et sa spec fonctionnelle. C'est le *bounded context* du DDD.
 _Avoid_ : module (réservé au code : une unité derrière une interface)
 
+**Carte des contextes** (*Context map*) :
+La liste des contextes d'un projet, avec le sous-domaine de chacun et les relations entre eux.
+_Avoid_ : carte (seul : c'est déjà la carte d'un wayfinder), GLOSSARY-MAP (le nom du fichier)
+
+**Sous-domaine** (*Subdomain*) :
+Ce qu'un contexte apporte au projet, de l'un de trois types : cœur (ce qui distingue le projet), support (nécessaire sans le distinguer) ou générique (ce qu'on pourrait prendre tout fait).
+_Avoid_ : classe (réservé au code), catégorie
+
+**Relation** (*Relationship*) :
+Le lien d'un contexte aval avec le contexte amont auquel il emprunte des termes. Elle est `conformiste` quand l'aval reprend ces termes et leur sens, et `traduction` quand il les nomme à sa façon et les convertit à la frontière.
+_Avoid_ : dépendance, intégration
+
 **Spec fonctionnelle** (*Functional spec*) :
 Le document vivant d'un contexte, qui énonce au présent les règles que tient son comportement sur `main`. Ce qui n'est pas livré n'y figure pas.
 _Avoid_ : spec (seul), spec vivante, PRD
