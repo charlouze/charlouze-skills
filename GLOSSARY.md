@@ -67,3 +67,7 @@ _Avoid_ : ruling, choix d'implémentation
 **Adoption** (*Adoption*) :
 La passe qui décrit dans sa spec fonctionnelle tout ce que fait déjà un contexte, depuis ses documents ou l'humain.
 _Avoid_ : migration, rétro-spec
+
+**Mise en place** (*Setup*) :
+La passe qui prépare un dépôt pour le plugin : ses consignes, ses déclarations et ses réglages. Elle ne crée aucun contexte.
+_Avoid_ : onboarding, installation
