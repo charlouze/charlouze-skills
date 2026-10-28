@@ -87,3 +87,10 @@ _Avoid_ : migration, rétro-spec
 **Mise en place** (*Setup*) :
 La passe qui prépare un dépôt pour le plugin : ses consignes, ses déclarations et ses réglages. Elle ne crée aucun contexte.
 _Avoid_ : onboarding, installation
+
+**Flag** (*Feature flag*) :
+Un interrupteur qui garde hors de portée des utilisateurs un comportement livré mais incomplet, jusqu'à son ticket de levée. Un changement dont chaque ticket tient seul n'en a pas.
+_Avoid_ : toggle, bascule
+
+**Phrase de garde** (*Gating sentence*) :
+La règle d'une spec fonctionnelle qui place un comportement derrière un flag, avec son défaut et, s'il survit à sa spec de changement, sa condition de levée.
