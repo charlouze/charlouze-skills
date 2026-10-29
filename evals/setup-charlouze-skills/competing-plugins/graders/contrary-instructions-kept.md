@@ -1,0 +1,6 @@
+---
+type: regex
+target: { source: file, path: CLAUDE.md }
+pattern: '\n## Conventions\n\n- Run the test suite with `npm test` before every commit\.\n- Write each test before its code, following `superpowers:test-driven-development`\.\n- Dates are shown in the member''s local time zone\.\n\n<!-- supercharlouze:begin -->\n## Specs and plans\n\nThis project overrides how superpowers organizes specs and plans\.\nInvoke `supercharlouze:using-batches` before any design work, and again before executing any plan\.\nIt relocates specs and plans, replaces steps 6 to 9 of the architectural checklist of superpowers:brainstorming, extends the stop conditions of superpowers:subagent-driven-development, requires subagent-driven-development as the execution mode, and constrains superpowers:finishing-a-development-branch to the pull request option\.\nIt declares each of these overrides explicitly; where it declares none, superpowers applies unchanged\.\n<!-- supercharlouze:end -->\n$'
+---
+CLAUDE.md ends, byte for byte, as `_fixtures/competing-flow/CLAUDE.md` does from `## Conventions`: a yes given before any proposal was shown is no yes to a contrary instruction, so the convention routed to superpowers and supercharlouze's block are as they were (regenerate the pattern if that file changes).

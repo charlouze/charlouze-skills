@@ -1,0 +1,6 @@
+---
+type: regex
+target: { source: file, path: docs/agents/triage-labels.md }
+pattern: '^# Triage Labels\n\nThe skills speak in terms of five canonical triage roles\. This file maps those roles to the actual label strings used in this repo''s issue tracker\.\n\n\| Label in mattpocock\/skills \| Label in our tracker \| Meaning                                  \|\n\| -{26} \| -{20} \| -{40} \|\n\| `needs-triage`             \| `needs-triage`       \| Maintainer needs to evaluate this issue  \|\n\| `needs-info`               \| `needs-info`         \| Waiting on reporter for more information \|\n\| `ready-for-agent`          \| `ready-for-agent`    \| Fully specified, ready for an AFK agent  \|\n\| `ready-for-human`          \| `ready-for-human`    \| Requires human implementation            \|\n\| `wontfix`                  \| `wontfix`            \| Will not be actioned                     \|\n\nWhen a skill mentions a role \(e\.g\. "apply the AFK-ready triage label"\), use the corresponding label string from this table\.\n\nEdit the "Label in our tracker" column to match whatever vocabulary you actually use\.\n[\s\S]*$'
+---
+`docs/agents/triage-labels.md` starts with Matt's template as it was (`_fixtures/matt-setup/docs/agents/triage-labels.md`); the plugin's section comes after it.

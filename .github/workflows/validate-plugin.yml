@@ -1,0 +1,41 @@
+name: Validate plugin
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      DISABLE_AUTOUPDATER: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Version épinglée : les règles du validateur changent d'une version à
+      # l'autre. `claude plugin validate` n'appelle pas le modèle et ne
+      # demande aucune authentification.
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code@2.1.312
+
+      - name: Validate marketplace, manifest and skills
+        run: claude plugin validate .
+
+      - name: Fail on untolerated warnings
+        run: |
+          claude plugin validate . --json > validate.json || true
+          jq -f .github/untolerated-warnings.jq validate.json > untolerated.json
+          n=$(jq length untolerated.json)
+          if [ "$n" -ne 0 ]; then
+            jq . untolerated.json
+            echo "::error::claude plugin validate reported $n untolerated warning(s)"
+            exit 1
+          fi
