@@ -11,6 +11,8 @@ claude plugin install charlouze-skills@charlouze-skills
 
 L'installation tire aussi `mattpocock-skills@claude-plugins-official`, dont le plugin dépend. Il faut pour cela que la marketplace `claude-plugins-official` soit connue de Claude Code (`claude plugin marketplace add anthropics/claude-plugins-official` sinon).
 
+Pour préparer un projet, lancer `/setup-matt-pocock-skills`, puis `/setup-charlouze-skills`. La seconde écrit le bloc `## charlouze-skills` du `CLAUDE.md` et déclare la marketplace et les deux plugins dans `.claude/settings.json`, après avoir montré chaque changement. Elle se relance sans risque, ne commite rien, et finit par la liste de ce qui reste à faire.
+
 Le plugin ne porte pas de version : Claude Code prend le SHA du commit, et chaque fusion sur `main` en devient une.
 
 ## Développer le plugin
@@ -64,4 +66,8 @@ $env:PATH = "<dossier de Git>\bin;$env:PATH"
 
 Une session d'évaluation qui reçoit un shell (`Bash`, `PowerShell`) est refusée sur Windows natif, faute de bac à sable : un cas qui en a besoin tourne sous WSL2 ou Linux.
 
-Un cas est un dossier `evals/<skill>/<cas>/` : `prompt.md` (le prompt, et en frontmatter les runs, le modèle et les outils), `case.yaml` (qui nomme le `fixture.sh`), `fixtures/` et un grader par fichier dans `graders/`. Le prompt ne nomme pas la skill : c'est au modèle de la choisir.
+Claude Code refuse toute écriture sous `.claude/` à une session sans humain, quels que soient les outils accordés : après un run, `.claude/settings.json` n'a jamais changé. Un cas juge donc une écriture des réglages sur l'appel `Write` ou `Edit` que la session tente, par un grader `tool_used` dont `input_match` porte le chemin et les valeurs. Dans une vraie session, l'humain approuve cette écriture.
+
+« Rien d'écrit » se juge en deux graders : `file_exists` sur `'**'` avec `exists: false` (aucun fichier créé ; ce grader ne voit que les fichiers créés), et une regex qui reprend le fichier existant octet pour octet, de `^` à `$`.
+
+Un cas est un dossier `evals/<skill>/<cas>/` : `prompt.md` (le prompt, et en frontmatter les runs, le modèle et les outils), `case.yaml` (qui nomme le `fixture.sh`), `fixtures/` et un grader par fichier dans `graders/`. Le prompt ne nomme pas une skill que lance le modèle : c'est à lui de la choisir. Une skill que lance l'humain (`disable-model-invocation: true`) a pour prompt sa commande, `/charlouze-skills:<nom>`, suivie de ce que l'humain répondrait à ses questions, tel qu'il le taperait avec la commande : la session ne peut pas lui répondre. Ces réponses passent par le prompt, et non par `append_system_prompt`, parce qu'un humain ne parle jamais par le prompt système : le cas jugerait un chemin que la skill ne rencontre pas. Une réponse qui ne vaut qu'une fois la proposition montrée, comme le oui à une consigne contraire, ne se donne pas d'avance : le cas juge alors que la proposition reste sans effet. Ce que plusieurs cas d'une skill partagent vit dans `evals/<skill>/_fixtures/`, un dossier sans `prompt.md` que le banc ne prend pas pour un cas, et que chaque `fixture.sh` lit par un chemin relatif.
