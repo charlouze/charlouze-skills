@@ -24,3 +24,12 @@ When running `/implement-spec`, deliver the change spec as a stack of PRs, one l
 - From the second layer on, link the stack with `gh stack link <bottom-branch> … <top-branch>`, and only then write `Closes #<ticket>` in the PR body: GitHub ignores closing keywords in a PR that targets another branch than `main` outside a stack. Never use `gh stack submit`, `sync`, `rebase` or `merge`. A single ticket gives an ordinary PR.
 - Once a layer is pushed, never rewrite it (no rebase, amend or force-push).
 - Report the stack: each layer's ticket and PR link.
+
+## Slicing with `to-tickets`
+
+When running `/to-tickets` on a change spec, keep the skill's issue template and add the following.
+
+- The change spec's `Spec delta` holds the blocks (`D1`, `D2`…): the exact text to write in a context's functional spec, glossary or the context map. Each ticket names, in *What to build*, the blocks it transcribes ("Transcribes D2 and D5"). Each block goes to exactly one ticket. A block number is not a file path: name it. Show each ticket's blocks in the breakdown you present.
+- A ticket merged alone after its blockers must not leave any user facing a half-delivered behaviour, and every user story of the change spec is delivered by at least one ticket. If this cannot hold without a flag the change spec does not declare, say so and stop: the change spec must be revised first.
+- The ticket that transcribes the blocks creating a context's spec comes first in that context. If the change spec declares a flag, the first gated ticket transcribes the block that adds the gating sentence, and the lift ticket is blocked by every gated ticket.
+- When publishing, create the label `context:<context>` for each context the change spec touches, if it is missing. For each context the change spec marks as existing but not adopted, also open an issue `Adopter <context>` with the labels `needs-triage` and `context:<context>`, saying that its functional spec only describes what this change touches. A new context gets none.
