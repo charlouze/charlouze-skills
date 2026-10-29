@@ -73,8 +73,12 @@ La passe où l'agent livre seul un ou plusieurs tickets d'une spec de changement
 _Avoid_ : série, lot, boucle
 
 **Arbitrage** (*Ruling*) :
-Une décision que l'agent prend sans l'humain, consignée pour lui dans la PR avec sa raison et ce qu'elle coûte si elle est fausse.
+Une décision que l'agent prend sans l'humain mais qu'il lui soumet dans la PR, « à trancher », avec sa raison et ce qu'elle coûte si elle est fausse. Approuver la PR la tranche.
 _Avoid_ : ruling, choix d'implémentation
+
+**Point d'attention** (*Review note*) :
+Un endroit du diff où le relecteur, en le lisant seul, pourrait passer à côté de quelque chose ou ne pas être d'accord, que l'agent lui signale sur sa ligne.
+_Avoid_ : remarque, note de revue
 
 **Reprise** (*Rework*) :
 La passe où l'agent traite les commentaires de revue d'une pile, couche par couche.

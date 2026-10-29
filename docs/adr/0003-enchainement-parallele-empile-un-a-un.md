@@ -6,5 +6,7 @@ Un enchaînement livre les tickets d'une spec de changement en une seule pile, u
 
 - L'ordre de la pile est l'ordre d'arrivée des tickets. Il reste topologique, puisqu'un ticket ne démarre qu'une fois ses bloqueurs poussés.
 - Un conflit au rebase oblige à relancer la vérification et la revue de la couche. Sans conflit, seule la vérification est relancée.
-- Un projet déclare dans `docs/agents/run.md` la largeur (le nombre d'implémenteurs en même temps) et les zones réservées au dépôt principal (la partie Unity d'un projet, par exemple). Un ticket qui touche une zone réservée s'exécute seul dans le dépôt principal. Avec une largeur de 1, on retrouve la séquence stricte.
+- Le nombre d'implémenteurs en même temps n'est pas réglé : c'est la frontière du graphe de tickets.
+- Un projet déclare dans `docs/agents/run.md` les zones réservées au dépôt principal (la partie Unity d'un projet, par exemple). Un ticket qui touche une zone réservée s'exécute seul dans le dépôt principal.
+- Le travail partiel d'un ticket arrêté arrive toujours en dernier : il attend que les tickets en cours soient poussés, puis devient une couche draft au sommet. Ses descendants n'étant pas lancés, rien ne s'empile au-dessus.
 - Un ticket seul donne une PR ordinaire : la pile ne se crée qu'à la deuxième couche.
