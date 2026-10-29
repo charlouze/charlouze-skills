@@ -13,6 +13,8 @@ L'installation tire aussi `mattpocock-skills@claude-plugins-official`, dont le p
 
 Pour préparer un projet, lancer `/setup-matt-pocock-skills`, puis `/setup-charlouze-skills`. La seconde écrit le bloc `## charlouze-skills` du `CLAUDE.md` et déclare la marketplace et les deux plugins dans `.claude/settings.json`, après avoir montré chaque changement. Elle se relance sans risque, ne commite rien, et finit par la liste de ce qui reste à faire.
 
+Elle complète aussi les fichiers de Matt, pour que `domain-modeling` et `triage` suivent les règles du plugin : des sections balisées `<!-- charlouze-skills -->` dans `docs/agents/domain.md` (le format du glossaire et la carte des contextes) et dans `docs/agents/triage-labels.md` (les dérives), et la disposition multi-contexte dans `domain.md` et dans la ligne `### Domain docs` du `CLAUDE.md`. Une relance de `/setup-matt-pocock-skills` défait ces ajouts ; relancer `/setup-charlouze-skills` ensuite les refait.
+
 Le plugin ne porte pas de version : Claude Code prend le SHA du commit, et chaque fusion sur `main` en devient une.
 
 ## Développer le plugin
