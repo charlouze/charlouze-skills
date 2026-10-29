@@ -35,3 +35,33 @@ claude plugin validate . --json | jq -f .github/untolerated-warnings.jq
 ```
 
 La seconde commande doit afficher `[]`.
+
+## Banc d'évaluation
+
+Les skills se testent par ce qu'elles laissent derrière elles. Chaque cas de `evals/` lance une session sur un dépôt fixture, que construit son `fixture.sh`, puis juge les fichiers que la session y a laissés, jamais la formulation de la skill. Les suites tournent en local, dans une session du compte de l'humain, et jamais en CI ([ADR 0005](docs/adr/0005-evaluations-en-local-jamais-en-ci.md), qui note aussi le coût mesuré d'une passe).
+
+Pour lancer les cas d'une skill, depuis la racine du dépôt :
+
+```
+claude plugin eval . --tag <skill> --ablation none --model opus \
+  --scaffold --allow-tools Write Edit --trust-plugin --no-publish --max-cost-usd 3
+```
+
+- `--ablation none` : pas de bras sans le plugin, qui doublerait le coût.
+- `--scaffold` lance le `fixture.sh` de chaque cas, et `--allow-tools Write Edit` laisse la session écrire dans le dépôt fixture.
+- `--no-publish` garde le rapport en local : sans lui, il est publié sur claude.ai.
+- `--max-cost-usd` arrête la passe au-delà d'un plafond, estimé au prix catalogue.
+- `--runs 1` suffit pour mettre au point un grader ; la mesure se fait au nombre de runs du cas.
+- `--keep-temp` garde le dépôt fixture de chaque run, pour lire ce que la session a écrit (sous `home/cwd/`). Le CLI déconseille d'y lancer `git`.
+
+Le rapport et le JSON (`--json <fichier>`) vont dans `evals/results/`, ignoré par git. La commande sort en 0 quand tous les cas passent.
+
+Sur Windows, depuis PowerShell, `bash` désigne celui de WSL, et les `fixture.sh` échouent. Mettre celui de Git en tête du `PATH` avant de lancer la passe :
+
+```
+$env:PATH = "<dossier de Git>\bin;$env:PATH"
+```
+
+Une session d'évaluation qui reçoit un shell (`Bash`, `PowerShell`) est refusée sur Windows natif, faute de bac à sable : un cas qui en a besoin tourne sous WSL2 ou Linux.
+
+Un cas est un dossier `evals/<skill>/<cas>/` : `prompt.md` (le prompt, et en frontmatter les runs, le modèle et les outils), `case.yaml` (qui nomme le `fixture.sh`), `fixtures/` et un grader par fichier dans `graders/`. Le prompt ne nomme pas la skill : c'est au modèle de la choisir.
