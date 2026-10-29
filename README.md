@@ -72,6 +72,14 @@ Claude Code refuse toute écriture sous `.claude/` à une session sans humain, q
 
 « Rien d'écrit » se juge en deux graders : `file_exists` sur `'**'` avec `exists: false` (aucun fichier créé ; ce grader ne voit que les fichiers créés), et une regex qui reprend le fichier existant octet pour octet, de `^` à `$`.
 
+Ces regex ne s'écrivent pas à la main. Pour `setup-charlouze-skills`, elles se dérivent des fixtures, tout comme les fichiers de Matt complétés de `_fixtures/charlouze-setup/`, qui appliquent `matt-files.md` aux modèles de Matt. Après un changement de `matt-files.md` ou d'une fixture, une commande régénère le tout :
+
+```
+mise exec python -- python evals/setup-charlouze-skills/_tools/regenerate.py
+```
+
+Elle ne réécrit que la ligne `pattern:` de chaque grader, et `--check` vérifie sans rien écrire. Dans un pattern, trois tirets de suite fermeraient le frontmatter du grader : ils s'écrivent `-{3}`.
+
 Sans réponse dans le prompt, une session montre les changements, pose sa question et s'arrête là : elle n'écrit rien, mais n'atteint pas le rapport final. Un cas qui juge le rapport donne donc ses réponses dans le prompt.
 
 Un cas est un dossier `evals/<skill>/<cas>/` : `prompt.md` (le prompt, et en frontmatter les runs, le modèle et les outils), `case.yaml` (qui nomme le `fixture.sh`), `fixtures/` et un grader par fichier dans `graders/`. Le prompt ne nomme pas une skill que lance le modèle : c'est à lui de la choisir. Une skill que lance l'humain (`disable-model-invocation: true`) a pour prompt sa commande, `/charlouze-skills:<nom>`, suivie de ce que l'humain répondrait à ses questions, tel qu'il le taperait avec la commande : la session ne peut pas lui répondre. Ces réponses passent par le prompt, et non par `append_system_prompt`, parce qu'un humain ne parle jamais par le prompt système : le cas jugerait un chemin que la skill ne rencontre pas. Une réponse qui ne vaut qu'une fois la proposition montrée, comme le oui à une consigne contraire, ne se donne pas d'avance : le cas juge alors que la proposition reste sans effet. Ce que plusieurs cas d'une skill partagent vit dans `evals/<skill>/_fixtures/`, un dossier sans `prompt.md` que le banc ne prend pas pour un cas, et que chaque `fixture.sh` lit par un chemin relatif.
