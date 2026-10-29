@@ -44,6 +44,7 @@ Done when every signal is known.
 Read each file below and plan its change by it, in this order.
 
 - [claude-md-block.md](claude-md-block.md): the plugin's block in the instructions file.
+- [matt-files.md](matt-files.md): the plugin's tagged sections in Matt's `docs/agents/domain.md` and `triage-labels.md`, and the multi-context layout in `domain.md` and the instructions file.
 - [project-settings.md](project-settings.md): the project's plugin settings, `.claude/settings.json`.
 - [competing-flows.md](competing-flows.md): a removal or a rewording for each instruction of the instructions file that contradicts the flow.
 
