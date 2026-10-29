@@ -1,5 +1,5 @@
 ---
-description: Rerun after the human changed values the setup wrote (the documents language, the marketplace's autoUpdate) keeps both values and changes nothing.
+description: Rerun after the human changed values the setup wrote (the documents language, the marketplace's autoUpdate, a sentence of a tagged section) keeps every one and changes nothing.
 runs: 3
 max_turns: 30
 timeout_seconds: 600

@@ -1,5 +1,5 @@
 ---
-description: On a GitHub repo with Matt's setup, the setup writes the CLAUDE.md block with the chosen language and declares the plugins in the project settings, and nothing else.
+description: On a GitHub repo with Matt's setup, the setup writes the CLAUDE.md block with the chosen language, the tagged sections and the multi-context layout in Matt's files, and declares the plugins in the project settings, and nothing else.
 runs: 3
 max_turns: 30
 timeout_seconds: 600
