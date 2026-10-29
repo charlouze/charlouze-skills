@@ -29,11 +29,11 @@ La description d'un changement à venir, telle que la produit `/to-spec`, parent
 _Avoid_ : spec (seul), PRD, lot
 
 **Ticket** (*Ticket*) :
-Une tranche d'une spec de changement, assez complète pour guider seul un implémenteur : son écart, sa conception technique et sa vérification.
+Une tranche d'une spec de changement, telle que la produit `/to-tickets`, qui nomme les blocs de l'écart qu'elle transcrit.
 _Avoid_ : story, US
 
 **Écart** (*Delta*) :
-Ce qu'un ticket change à la spec fonctionnelle et au glossaire d'un contexte, sous forme de blocs.
+Ce qu'une spec de changement change à la spec fonctionnelle et au glossaire d'un contexte, ou à la carte des contextes, sous forme de blocs.
 _Avoid_ : delta de spec
 
 **Bloc** (*Block*) :
