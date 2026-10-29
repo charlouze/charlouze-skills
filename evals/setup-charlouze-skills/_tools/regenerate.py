@@ -20,7 +20,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 SUITE = ROOT / 'evals/setup-charlouze-skills'
-FIXTURES = SUITE / '_fixtures'
+FIXTURES = ROOT / 'evals/_fixtures'
 MATT_FILES = ROOT / 'skills/setup-charlouze-skills/matt-files.md'
 
 
@@ -103,7 +103,7 @@ def graders(files):
     competing = fx('competing-flow/CLAUDE.md')
 
     # What the rerun-after-hand-edit fixture changes by hand.
-    french = ('Documents produits : English', 'Documents produits : Français')
+    french = ('Language of produced documents: English', 'Language of produced documents: Français')
     audit = ('"Audit <part> against the functional spec"', '"Audit <part> against its functional spec"')
 
     i = matt_domain.index('## File structure\n')

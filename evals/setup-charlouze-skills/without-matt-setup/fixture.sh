@@ -3,7 +3,7 @@
 # /setup-matt-pocock-skills never ran (no `## Agent skills`, no docs/agents/).
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$here/../_fixtures/lib.sh"
+source "$here/../../_fixtures/lib.sh"
 
 init_repo
 cp "$here/fixtures/CLAUDE.md" CLAUDE.md

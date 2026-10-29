@@ -18,7 +18,7 @@ Multi-context: `GLOSSARY-MAP.md` at the repo root from the first context, each c
 
 ## charlouze-skills
 
-Documents produits : English
+Language of produced documents: English
 
 ## Conventions
 

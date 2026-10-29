@@ -3,7 +3,7 @@
 # ran, and the charlouze-skills setup never did (no block, no settings file).
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$here/../_fixtures/lib.sh"
+source "$here/../../_fixtures/lib.sh"
 
 init_repo
 add_matt_setup

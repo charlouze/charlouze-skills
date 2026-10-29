@@ -1,4 +1,4 @@
-# Shared by the fixture.sh of every setup-charlouze-skills case: sourced, not run.
+# Shared by the fixture.sh of every eval case: sourced, not run.
 # Each function builds one layer of the fixture repo in the current directory.
 
 fixtures="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
