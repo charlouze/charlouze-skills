@@ -3,5 +3,5 @@
   "description": "Engineering skills layered on top of mattpocock-skills, for product and game projects: functional specs per context, drift rules, setup.",
   "author": { "name": "Charlouze" },
   "repository": "https://github.com/charlouze/charlouze-skills",
-  "skills": []
+  "skills": ["./skills/writing-functional-specs"]
 }
