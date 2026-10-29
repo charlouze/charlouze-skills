@@ -29,11 +29,11 @@ La description d'un changement à venir, telle que la produit `/to-spec`, parent
 _Avoid_ : spec (seul), PRD, lot
 
 **Ticket** (*Ticket*) :
-Une tranche d'une spec de changement, assez complète pour guider seul un implémenteur : son écart, sa conception technique et sa vérification.
+Une tranche d'une spec de changement, telle que la produit `/to-tickets`, qui nomme les blocs de l'écart qu'elle transcrit.
 _Avoid_ : story, US
 
 **Écart** (*Delta*) :
-Ce qu'un ticket change à la spec fonctionnelle et au glossaire d'un contexte, sous forme de blocs.
+Ce qu'une spec de changement change à la spec fonctionnelle et au glossaire d'un contexte, ou à la carte des contextes, sous forme de blocs.
 _Avoid_ : delta de spec
 
 **Bloc** (*Block*) :
@@ -73,8 +73,12 @@ La passe où l'agent livre seul un ou plusieurs tickets d'une spec de changement
 _Avoid_ : série, lot, boucle
 
 **Arbitrage** (*Ruling*) :
-Une décision que l'agent prend sans l'humain, consignée pour lui dans la PR avec sa raison et ce qu'elle coûte si elle est fausse.
+Une décision que l'agent prend sans l'humain mais qu'il lui soumet dans la PR, « à trancher », avec sa raison et ce qu'elle coûte si elle est fausse. Approuver la PR la tranche.
 _Avoid_ : ruling, choix d'implémentation
+
+**Point d'attention** (*Review note*) :
+Un endroit du diff où le relecteur, en le lisant seul, pourrait passer à côté de quelque chose ou ne pas être d'accord, que l'agent lui signale sur sa ligne.
+_Avoid_ : remarque, note de revue
 
 **Reprise** (*Rework*) :
 La passe où l'agent traite les commentaires de revue d'une pile, couche par couche.
