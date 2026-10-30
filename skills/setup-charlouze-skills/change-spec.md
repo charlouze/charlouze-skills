@@ -1,6 +1,6 @@
 # Change spec
 
-These instructions complete `/to-spec`. Its steps and its template hold; this file adds three sections, `Contexts`, `Spec delta` and `Risks`, the grids, and the human's review of the blocks before publishing. Section headings stay in English, like the template's.
+These instructions complete `/to-spec`. Its steps and its template hold; this file adds three sections, `Contexts`, `Spec delta` and `Risks`, a flag by exception, the grids, and the human's review of the blocks before publishing. Section headings stay in English, like the template's.
 
 ## Contexts
 
@@ -42,10 +42,20 @@ A section added to the template, right after `User Stories`. It holds the **delt
 
 A section added to the template, right after `Out of Scope`: what could go wrong with the change, while it is delivered or once it ships. One item per risk, saying what would reveal it and the fallback when there is one.
 
+## Flag
+
+A **flag** keeps a delivered but incomplete behaviour out of the users' reach until its lift ticket. The change spec gives it no section of its own: the `Implementation Decisions` declare it, the `Spec delta` gates the behaviour in the functional spec, the `Testing Decisions` cover it. It is the exception, for a change whose user stories cannot be delivered by tickets that each, merged alone after their blockers, leave no user facing a half-delivered behaviour.
+
+- **Propose it** to the human before writing the draft: name the parts it would gate and why no slicing delivers them without it. Write the draft with the flag once the human agrees.
+- **Declare it** in the `Implementation Decisions`: its name, its default, the parts it gates, and its lift. One flag per change spec; several only when gated parts lift at different times. How the flag is built is a decision of the `Implementation Decisions`, or of a project ADR.
+- **Its gating sentence** is the rule that puts the gated behaviour behind the flag, with its default, in that behaviour's functional spec. One block of the `Spec delta` adds it; another, transcribed by the lift ticket, removes it.
+- **A flag that outlives its change spec**, lifted on a condition rather than by the change's last ticket: its declared lift is that condition, and its gating sentence states it too.
+- **Test both values.** The `Testing Decisions` cover each gated part with the flag on and with it off, so that `main` works either way.
+
 ## Before publishing
 
 `/to-spec` writes the spec, then publishes it. Write it as a draft, with the additions above, and take these steps before publishing.
 
 1. **Grids.** Call the Skill tool with `grid-review` on the draft, at the spec hook point, then at the design hook point. Fix in the draft each remark you accept. For each other remark, write the justification that keeps the draft as it is. Done when every remark is fixed or justified.
-2. **Review.** Show the human every block of the `Spec delta` together, in full (or its `none` and the reason), then each grid remark left unfixed with its justification. A justification the human accepts becomes a constraint of the `Implementation Decisions`, stated with its reason, so that no later review raises the remark again; a remark the human upholds is fixed in the draft. Show again what any answer changed. Done when the human has validated the blocks and ruled on every remark.
+2. **Review.** Show the human every block of the `Spec delta` together, in full (or its `none` and the reason), then each flag's declaration, then each grid remark left unfixed with its justification. A justification the human accepts becomes a constraint of the `Implementation Decisions`, stated with its reason, so that no later review raises the remark again; a remark the human upholds is fixed in the draft. Show again what any answer changed. Done when the human has validated the blocks and every flag, and ruled on every remark.
 3. **Publish**, as `/to-spec` says.
