@@ -44,7 +44,7 @@ Done when every signal is known.
 
 Read each file below and plan its change by it, in this order.
 
-- [claude-md-block.md](claude-md-block.md): the plugin's block in the instructions file.
+- [claude-md-block.md](claude-md-block.md): the plugin's block in the instructions file, its lines and its sections.
 - [matt-files.md](matt-files.md): the plugin's tagged sections in Matt's `docs/agents/domain.md` and `triage-labels.md`, and the multi-context layout in `domain.md` and the instructions file.
 - [grids-file.md](grids-file.md): the project's declaration of its grids, `docs/agents/grids.md`.
 - [change-spec-file.md](change-spec-file.md): the instructions that complete `/to-spec`, `docs/agents/change-spec.md`.
