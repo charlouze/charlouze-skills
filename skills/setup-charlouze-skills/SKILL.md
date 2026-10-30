@@ -47,6 +47,7 @@ Read each file below and plan its change by it, in this order.
 - [claude-md-block.md](claude-md-block.md): the plugin's block in the instructions file.
 - [matt-files.md](matt-files.md): the plugin's tagged sections in Matt's `docs/agents/domain.md` and `triage-labels.md`, and the multi-context layout in `domain.md` and the instructions file.
 - [grids-file.md](grids-file.md): the project's declaration of its grids, `docs/agents/grids.md`.
+- [change-spec-file.md](change-spec-file.md): the instructions that complete `/to-spec`, `docs/agents/change-spec.md`.
 - [project-settings.md](project-settings.md): the project's plugin settings, `.claude/settings.json`.
 - [competing-flows.md](competing-flows.md): a removal or a rewording for each instruction of the instructions file that contradicts the flow.
 
@@ -58,7 +59,7 @@ When step 3 planned no change, say the repo is already set up and go to step 6.
 
 Otherwise show every planned change, then ask for a yes on each part below, separately. An answer the human already gave stands; ask only what is still open.
 
-- **The plugin's changes**: the block, Matt's files, the grids file and the settings, grouped by file: a unified diff for an existing file, the whole content for a new one. One yes covers them all, including a yes the human gave with the command; the human may drop or amend any of them.
+- **The plugin's changes**: the block, Matt's files, the grids file, the change spec file and the settings, grouped by file: a unified diff for an existing file, the whole content for a new one. One yes covers them all, including a yes the human gave with the command; the human may drop or amend any of them.
 - **Each contrary-instruction proposal**, on its own, shown as [competing-flows.md](competing-flows.md) says. It is the human's own text, so only a yes given to this proposal after it was shown applies it. A yes given earlier, with the command or to the plugin's changes, leaves the instruction as it is.
 
 A part without its yes stays unwritten: carry on to step 5 with the rest, and the report lists it as proposed.
