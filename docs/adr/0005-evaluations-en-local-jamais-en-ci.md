@@ -1,5 +1,7 @@
 # Les suites d'évaluation des skills tournent en local, dans une session du compte de l'humain, jamais en CI
 
+Remplacée par [l'ADR 0006](0006-skills-validees-en-usage-reel-et-par-spikes.md).
+
 Une suite de `claude plugin eval` lance de vraies sessions de Claude Code sur des dépôts fixture, et juge ce que la skill y laisse. Elle tourne sur le poste de l'humain, avec l'authentification de son abonnement ; la CI ne lance que `claude plugin validate`. La CI n'a pas d'accès à une IA : lui en donner un demandait une clé d'API, donc des tokens payés en plus de l'abonnement. Retomber sur des essais manuels évitait tout coût, mais laissait chaque skill sans test rejouable ; la mesure ci-dessous montre que le banc coûte assez peu pour servir aux specs de changement suivantes.
 
 ## Consequences

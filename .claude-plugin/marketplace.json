@@ -7,7 +7,7 @@
     {
       "name": "charlouze-skills",
       "source": "./",
-      "description": "Engineering skills layered on top of mattpocock-skills, for product and game projects: functional specs per context, drift rules, setup.",
+      "description": "Engineering skills layered on top of mattpocock-skills, for product and game projects: functional specs per context, drift rules, review by grids, setup.",
       "dependencies": ["mattpocock-skills@claude-plugins-official"]
     }
   ]

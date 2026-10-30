@@ -36,6 +36,7 @@ Signals inform the report; they stop nothing and change no file.
 
 - **`gh`.** Run `gh auth status`. When it fails, or no shell is available to run it, the report asks for `gh auth login`: the plugin's skills write to GitHub through `gh`.
 - **Competing flow plugins.** Find each enabled plugin of a competing flow, by the "Competing flow plugins" section of [competing-flows.md](competing-flows.md).
+- **Missing grids.** Read the grids declaration that `grid-review` reads: `docs/agents/grids.md`, or [the default declaration](../grid-review/default-grids.md) when that file is missing. A declared grid is missing when none of your available skills bears its skill's short name, bare or after a `<plugin>:` prefix: `clean-code` is found as `clean-code` or as `code-craftsmanship:clean-code`. Note each missing grid's skill, and whether the default declaration names that skill too.
 
 Done when every signal is known.
 
@@ -45,6 +46,7 @@ Read each file below and plan its change by it, in this order.
 
 - [claude-md-block.md](claude-md-block.md): the plugin's block in the instructions file.
 - [matt-files.md](matt-files.md): the plugin's tagged sections in Matt's `docs/agents/domain.md` and `triage-labels.md`, and the multi-context layout in `domain.md` and the instructions file.
+- [grids-file.md](grids-file.md): the project's declaration of its grids, `docs/agents/grids.md`.
 - [project-settings.md](project-settings.md): the project's plugin settings, `.claude/settings.json`.
 - [competing-flows.md](competing-flows.md): a removal or a rewording for each instruction of the instructions file that contradicts the flow.
 
@@ -56,7 +58,7 @@ When step 3 planned no change, say the repo is already set up and go to step 6.
 
 Otherwise show every planned change, then ask for a yes on each part below, separately. An answer the human already gave stands; ask only what is still open.
 
-- **The plugin's changes**: the block, Matt's files and the settings, grouped by file: a unified diff for an existing file, the whole content for a new one. One yes covers them all, including a yes the human gave with the command; the human may drop or amend any of them.
+- **The plugin's changes**: the block, Matt's files, the grids file and the settings, grouped by file: a unified diff for an existing file, the whole content for a new one. One yes covers them all, including a yes the human gave with the command; the human may drop or amend any of them.
 - **Each contrary-instruction proposal**, on its own, shown as [competing-flows.md](competing-flows.md) says. It is the human's own text, so only a yes given to this proposal after it was shown applies it. A yes given earlier, with the command or to the plugin's changes, leaves the instruction as it is.
 
 A part without its yes stays unwritten: carry on to step 5 with the rest, and the report lists it as proposed.
@@ -76,8 +78,9 @@ End on this report. Write each heading, and under it one line per item; write "n
 - **Left to you**:
   - Install the plugins for this project, since the project settings alone do not install `mattpocock-skills` (it lives outside its marketplace): in a terminal at the repo root, `claude plugin marketplace add charlouze/charlouze-skills` if that marketplace is unknown, then `claude plugin install charlouze-skills@charlouze-skills --scope project`, which pulls `mattpocock-skills` as a dependency; or the same through `/plugin` in a session. Then `/reload-plugins`. Each collaborator runs the install once.
   - `gh auth login`, when step 2 found `gh` disconnected or could not check it.
+  - Each missing grid step 2 found, by its skill. When the default declaration names it, its skill is one of wondelai's: add the command that installs that skill alone, `npx skills add https://github.com/wondelai/skills --skill <skill>`, written out in full for each missing one. Never point to wondelai's plugins, which bring many skills that are not grids. Any other missing grid is the human's to install, or to drop from `docs/agents/grids.md`. This setup installs nothing.
   - For each competing flow plugin step 2 found: the file that enables it, `/plugin disable <plugin>@<marketplace>`, then `/reload-plugins`.
-  - Each contrary instruction still in the instructions file, kept by the human or awaiting its yes: quote it, with its proposal.
+  - Each contrary instruction still in the instructions file, kept by the human or awaiting its yes: quote it, with its proposal written out again (the removal, or the reworded text), never a pointer to where step 4 showed it.
   - Review, then commit the changed files. This setup never commits.
 - **Cloud sessions**: they do not install the plugins a repo declares; there, the flow is complete only through organisation (server-managed) settings.
 - **Next**: work as usual with Matt's flow. A context, its functional spec and its `context:<name>` label are created by the change that needs them, never by this setup. Rerun this setup after the plugin changes or after a rerun of `/setup-matt-pocock-skills`.

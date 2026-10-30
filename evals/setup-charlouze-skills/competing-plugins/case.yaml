@@ -1,5 +1,0 @@
-schema_version: "1.1"
-name: setup-competing-plugins
-tags: [setup-charlouze-skills]
-context:
-  scaffold_script: fixture.sh
