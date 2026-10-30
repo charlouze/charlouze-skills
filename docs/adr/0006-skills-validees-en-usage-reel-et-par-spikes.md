@@ -1,0 +1,11 @@
+# Les skills se valident en usage réel et par des spikes, sans banc d'évaluation
+
+Le plugin n'a plus de banc d'évaluation, ni aucun test qui fait tourner un modèle : ni session d'évaluation, ni juge LLM. Les tests déterministes, sans modèle, restent les bienvenus. Une skill se valide en usage réel, sur les projets de l'humain. Quand un point précis reste à vérifier, un spike jetable le vérifie de temps à autre : une vraie session sur un dépôt jetable, dont le résultat est noté dans la PR ou l'issue qui l'a demandé, comme l'essai d'une revue lancée par `/implement` pour #47. Le banc de `claude plugin eval` (ADR 0005), que la spec de changement #33 a remplacé, jugeait chaque critère d'acceptation par un cas rejouable. À l'usage, il coûtait plus qu'il ne rapportait : environ 56 $ au prix catalogue pour les quatre tickets de #33, dont une bonne part pour mettre au point des graders, pris sur les limites d'usage de l'abonnement de l'humain. Ce coût venait des sessions que lance chaque cas, de 0,10 à 0,66 $ par run, et non du juge, à moins de 0,001 $. Il y avait aussi des cas instables, jugés sur une formulation ou sur un nombre exact de sous-agents ; et des cas qui demandaient un shell, que l'humain ne veut pas accorder à une session d'évaluation, même sous Linux. Garder le banc comme suite de non-régression, sans nouveaux cas, aurait gardé ce coût et ces cas instables pour un filet que l'usage réel donne déjà.
+
+## Consequences
+
+- `evals/`, l'outil `regenerate.py` et la section « Banc d'évaluation » du README disparaissent. La CI ne lance toujours que `claude plugin validate`.
+- Le code déterministe d'une skill, comme un script, se teste par des tests ordinaires, sans modèle : ils ne coûtent rien et ne sont pas instables. Le script de finalisation de #35 en garde.
+- Un ticket ne demande plus de cas d'évaluation ni de coût de passe noté dans le README. Un critère qui ne se voit qu'à l'usage peut demander un spike, dont le ticket dit le point à vérifier.
+- Une régression d'une skill se découvre à l'usage, plus tard qu'un banc ne l'aurait vue : le banc a ainsi relevé, dans #33, un rapport de la mise en place qui ne redisait plus les consignes contraires.
+- Les specs de changement #34 et #35, écrites avec des cas d'évaluation, ont été reprises selon cette ADR.
