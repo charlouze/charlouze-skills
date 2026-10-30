@@ -78,7 +78,7 @@ End on this report. Write each heading, and under it one line per item; write "n
   - Install the plugins for this project, since the project settings alone do not install `mattpocock-skills` (it lives outside its marketplace): in a terminal at the repo root, `claude plugin marketplace add charlouze/charlouze-skills` if that marketplace is unknown, then `claude plugin install charlouze-skills@charlouze-skills --scope project`, which pulls `mattpocock-skills` as a dependency; or the same through `/plugin` in a session. Then `/reload-plugins`. Each collaborator runs the install once.
   - `gh auth login`, when step 2 found `gh` disconnected or could not check it.
   - For each competing flow plugin step 2 found: the file that enables it, `/plugin disable <plugin>@<marketplace>`, then `/reload-plugins`.
-  - Each contrary instruction still in the instructions file, kept by the human or awaiting its yes: quote it, with its proposal.
+  - Each contrary instruction still in the instructions file, kept by the human or awaiting its yes: quote it, with its proposal written out again (the removal, or the reworded text), never a pointer to where step 4 showed it.
   - Review, then commit the changed files. This setup never commits.
 - **Cloud sessions**: they do not install the plugins a repo declares; there, the flow is complete only through organisation (server-managed) settings.
 - **Next**: work as usual with Matt's flow. A context, its functional spec and its `context:<name>` label are created by the change that needs them, never by this setup. Rerun this setup after the plugin changes or after a rerun of `/setup-matt-pocock-skills`.
