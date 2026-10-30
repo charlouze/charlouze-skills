@@ -1,7 +1,7 @@
 ---
 name: grid-review
-description: Judge by the grids the project declares (evaluation skills such as clean-code or domain-driven-design) a draft change spec, a draft slicing into tickets, or a diff since a fixed point, where it is the Grids axis beside code-review's Standards and Spec. Use with every code-review, or when asked to judge a draft or changes by the project's grids.
-argument-hint: "[hook point: spec | design | review] <draft, fixed point, or the diff>"
+description: Judge by the grids the project declares (evaluation skills such as clean-code or domain-driven-design) a draft change spec, whole at the spec hook point and by its Implementation Decisions at the design one, or a diff since a fixed point, where it is the Grids axis beside code-review's Standards and Spec. Use with every code-review, or when asked to judge a draft or changes by the project's grids.
+argument-hint: "[hook point: spec | design | review] <draft change spec, fixed point, or the diff>"
 ---
 
 # Grid review
@@ -10,11 +10,11 @@ A **grid** is an evaluation skill a project declares at one or more **hook point
 
 It takes the hook point and the **object** judged there:
 
-- **spec**: a draft change spec;
-- **design**: a draft slicing of a change spec into tickets;
+- **spec**: a draft change spec, judged whole;
+- **design**: a draft change spec, judged on its `Implementation Decisions`, where its design lives; the rest of the draft is context;
 - **review**: a diff since a fixed point.
 
-When the caller names no hook point, take the one whose object it hands over.
+When the caller names no hook point, a diff is judged at review, and a draft at spec, then at design, each with its own report.
 
 ## The declaration
 
@@ -53,7 +53,7 @@ Done when every grid kept has its sort.
 
 Launch one subagent per active grid, every call in one message so that they run in parallel. Each prompt holds:
 
-- the object: the diff's command or patch file, and the changed files in the grid's zone, the only ones to judge; or the draft's path, or its text;
+- the object: the diff's command or patch file, and the changed files in the grid's zone, the only ones to judge; or the draft's path, or its text, with at design "Judge its `Implementation Decisions` only: the rest of the draft is context.";
 - "Invoke the Skill tool with `<skill as listed>`, then judge this <object> by its diagnostic.";
 - the grid's lines excluded at this hook point, by number: "Leave lines <numbers> out: judge, mention and score the other lines only.";
 - the grid's focus items that hold at this hook point, word for word;
@@ -63,7 +63,7 @@ Done when every subagent has returned.
 
 ### 4. Report
 
-Under `## Grids`, one `### <grid>` part per grid kept at step 2, in the declaration's order:
+Under `## Grids` (`## Grids at <hook point>` for a draft), one `### <grid>` part per grid kept at step 2, in the declaration's order:
 
 - **Active**: `### <grid> (<skill>): <score>`, then its failed lines and focus checks, each with its fix or its reason, as the subagent returned them, lightly cleaned. The part speaks of judged lines only, with no note on how the score was reached: the declaration already records each excluded line and its reason, so the report never names one, not even to say it was left out.
 - **Out of zone**: "not launched: its zone touches no code of the <object>."
