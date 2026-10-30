@@ -10,8 +10,10 @@ The grids `grid-review` applies in this project, one per `##` section. Change an
 - **Excluded lines**:
   - 3 (aggregates), 4 (behaviour), 5 (events): the DDD tactical grid judges them.
   - 6 (translation), 7 (core subdomain) at review: the context map settles them, at spec and design.
+- **Condition**:
+  - At spec: the draft creates or moves a context, or touches a glossary or the context map.
 - **Focus**:
-  - At spec: judge only a change that creates or moves a context, or touches a glossary or the context map. Also check that every borrowed term has its relationship on the context map and every relationship a borrowed term behind it, and that one or two contexts at most are `core`.
+  - At spec: on the context map and the glossaries as the draft leaves them, check that every borrowed term has its relationship on the map and every relationship a borrowed term behind it, and that one or two contexts at most are `core`.
   - At review: hold every name the diff introduces or renames against the `_Code_:` lines of its context's glossary, found by the layout of `docs/agents/domain.md`.
 
 ## DDD tactical
