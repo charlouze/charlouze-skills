@@ -38,9 +38,24 @@ When you run `/implement-spec`, deliver the change spec as one stack of pull req
   6. from the second layer on, link the stack with `gh stack link`, giving the pull request numbers from bottom to top so that it pushes nothing.
 - **One push at a time.** Layers are pushed one at a time, in the order their tickets reach the end of step 3, which never puts a layer below one of its blockers. A pushed layer is never rewritten (`Git history`).
 - **A single ticket** gives an ordinary pull request to `main`: the stack is born with the second layer.
-- **Pull request body.** The template of `pr`, plus `Closes #<ticket>`: from the start in the first layer, and in the others only once `gh stack link` has run, since GitHub ignores closing keywords in a pull request based on another branch than `main` outside a stack.
+- **Stopping a ticket.** Stop a ticket in four cases only:
+  1. a block of the change spec cannot be transcribed as it stands, or the code shows that the change spec is wrong;
+  2. an ADR or a constraint of the change spec cannot be held;
+  3. the tests still fail after three attempts at fixing them;
+  4. a human action is needed: an access, an account, a secret.
+
+  Comment on the stopped ticket with the question and what was tried, and swap its `ready-for-agent` role's label, if it has one, for the `needs-info` role's. Its descendants wait; the other tickets go on.
+- **Draft layer.** A stopped ticket's partial work comes last. It waits until every other ticket the run starts is pushed or stopped, tidies its commits, then runs steps 4 to 6 of the layer cycle, opening a draft pull request without `Closes`; its review waits for the relaunch. Several stopped tickets give as many draft layers, one above the other. Only a draft layer stacks above a draft layer, so merging the stack stops below the lowest one.
+- **Relaunch.** On a change spec whose stack is still open, first finish each draft layer, from the bottom up, whatever its ticket's label. The layer is pushed, so it changes by added commits only (`Git history`):
+  1. when the layers below it have moved, merge its parent into it: `main` once the human has merged them, since the finalization rewrote them, or the lower draft layer once that one has gained commits;
+  2. run steps 1 to 3 of the layer cycle, without tidying;
+  3. push, check with `git ls-remote` that the remote branch points at your local tip, mark its pull request ready for review, and add `Closes #<ticket>` to its body.
+
+  The following tickets then stack on top. When the whole stack has been merged, start a new stack from `main`.
+- **Pull request body.** The template of `pr`, plus `Closes #<ticket>`, except in a draft layer: from the start in the first layer, and in the others only once `gh stack link` has run, since GitHub ignores closing keywords in a pull request based on another branch than `main` outside a stack.
 - **Report.** End the run with one comment on the change spec, giving:
   - the stack, by the link `gh stack link` prints (a single ticket's pull request, by its own link), and each layer: its ticket's title and its pull request's link.
+  - the stopped tickets: each one's question and its draft layer's link.
 
   Your final message points at that comment.
 
