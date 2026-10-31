@@ -51,3 +51,9 @@ claude plugin validate . --json | jq -f .github/untolerated-warnings.jq
 ```
 
 La seconde commande doit afficher `[]`.
+
+Le script de finalisation a ses propres tests, ordinaires, sans modèle ni GitHub : chacun monte un dépôt git local et son remote nu dans un dossier temporaire, isolé de la configuration git du poste. Ils demandent, comme le script, `bash` et `git` 2.41 ou plus récent (Git Bash sous Windows), et la CI ne les lance pas :
+
+```
+bash skills/finalize-stack/scripts/finalize-stack.test.sh
+```
