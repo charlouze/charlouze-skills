@@ -10,7 +10,15 @@ Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-
 
 ### Domain docs
 
-Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Multi-context: `GLOSSARY-MAP.md` at the repo root from the first context, each context's `SPEC.md` and `GLOSSARY.md` in `docs/contexts/<context>/`, one `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+## charlouze-skills
+
+Language of produced documents: French
+
+Grids: declared in `docs/agents/grids.md`, applied by `grid-review`.
+
+Code review: whenever you run `code-review`, whoever asked for it (the human, `/implement`, `/implement-spec`), also call the Skill tool with `grid-review` on the same fixed point, and report its `## Grids` section beside `## Standards` and `## Spec`.
 
 ## Stacked delivery with `implement-spec`
 
