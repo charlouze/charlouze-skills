@@ -19,6 +19,8 @@ Git history: tidy your commits freely until a branch's first push; after it, rew
 
 Run: reserved zones declared in `docs/agents/run.md`, applied by ``Stacked delivery with `implement-spec` ``.
 
+Agent identity: <agent identity>
+
 ### Slicing with `to-tickets`
 
 When you run `/to-tickets` on a change spec, keep its issue template and add the following.
@@ -94,6 +96,9 @@ What each one is for:
 - **`Change spec`** points `/to-spec` at the instructions that complete it, which [change-spec-file.md](change-spec-file.md) plans.
 - **`Git history`** states the policy in short, so that no session rewrites a pushed branch, and points at the whole policy, which [git-history-file.md](git-history-file.md) plans.
 - **`Run`** points at the project's reserved zones, which [run-file.md](run-file.md) plans.
+- **`Agent identity`** says who is who on GitHub, so that the agent tells its own comments from the human's, and so that the stacked delivery posts the points of attention as review comments on their lines. Ask the human whether the agent acts on GitHub under its own identity.
+  - **Yes**: `<agent identity>` reads "the human is `<human login>`; the agent is `<agent login>`", with the logins the human gives. A GitHub App's login is its name; the REST API shows it as `<name>[bot]`.
+  - **No**: `<agent identity>` is `none`, and the report offers the agent an identity of its own.
 - **``Slicing with `to-tickets` ``** completes `/to-tickets` for a change spec written by the `Change spec` instructions.
 - **``Stacked delivery with `implement-spec` ``** has `/implement-spec` deliver the tickets of a change spec as one native stack, one layer per ticket, in place of its integration branch. It runs a ticket that touches a reserved zone in the main repository, and links the stack through the `gh stack` extension, which step 2 checks.
 
@@ -103,4 +108,4 @@ What each one is for:
 - **The heading exists**: keep the block where it is, and plan only what it lacks. One blank line goes before each addition.
   - **A missing line** goes after the block's last line, before its first section.
   - **A missing section** goes at the block's end, in the order the block above gives.
-- **What is present is the human's.** A present line keeps its value, whatever it is: when `Language of produced documents` is present, do not ask for the language. A present section keeps its content as it stands. When that content differs from the plugin's, list the section by its heading under **Kept**, with "the plugin's section" as the value this setup would have written, never its content.
+- **What is present is the human's.** A present line keeps its value, whatever it is: when `Language of produced documents` or `Agent identity` is present, do not ask its question. A present section keeps its content as it stands. When that content differs from the plugin's, list the section by its heading under **Kept**, with "the plugin's section" as the value this setup would have written, never its content.
