@@ -24,6 +24,8 @@ Git history: tidy your commits freely until a branch's first push; after it, rew
 
 Run: reserved zones declared in `docs/agents/run.md`, applied by ``Stacked delivery with `implement-spec` ``.
 
+Agent identity: the human is `charlouze`; the agent is `charlouze-dev-agent`.
+
 ### Stacked delivery with `implement-spec`
 
 When you run `/implement-spec`, deliver the change spec as one stack of pull requests, one layer per ticket, instead of its integration branch. This replaces its steps 3, 4, 5, 7 and 8. The rest holds: the task graph, the frontier, implementer subagents in parallel in their own worktrees, `tdd`.
