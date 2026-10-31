@@ -51,3 +51,10 @@ claude plugin validate . --json | jq -f .github/untolerated-warnings.jq
 ```
 
 La seconde commande doit afficher `[]`.
+
+Le script de finalisation a ses propres tests, ordinaires, sans modèle ni GitHub, écrits pour [bats](https://bats-core.readthedocs.io/) : chacun monte un dépôt git local et son remote nu dans son dossier temporaire, isolé de la configuration git du poste. Le `package.json` de la racine fixe la version de bats ; il ne sert qu'au développement. Les tests demandent Node, et, comme le script, `bash` et `git` 2.41 ou plus récent (Git Bash sous Windows) ; la CI ne les lance pas :
+
+```
+npm install
+npm test
+```
