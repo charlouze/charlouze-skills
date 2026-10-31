@@ -50,6 +50,7 @@ Read each file below and plan its change by it, in this order.
 - [grids-file.md](grids-file.md): the project's declaration of its grids, `docs/agents/grids.md`.
 - [change-spec-file.md](change-spec-file.md): the instructions that complete `/to-spec`, `docs/agents/change-spec.md`.
 - [git-history-file.md](git-history-file.md): the project's git history policy, `docs/agents/git-history.md`.
+- [run-file.md](run-file.md): the project's reserved zones, `docs/agents/run.md`.
 - [project-settings.md](project-settings.md): the project's plugin settings, `.claude/settings.json`.
 - [github-settings.md](github-settings.md): the repository settings the git history policy needs, on GitHub.
 - [competing-flows.md](competing-flows.md): a removal or a rewording for each instruction of the instructions file that contradicts the flow.
@@ -62,7 +63,7 @@ When step 3 planned no change, say the repo is already set up and go to step 6.
 
 Otherwise show every planned change, then ask for a yes on each part below, separately. An answer the human already gave stands; ask only what is still open.
 
-- **The plugin's changes**: the block, Matt's files, the grids file, the change spec file, the git history file and the settings, grouped by file: a unified diff for an existing file, the whole content for a new one. One yes covers them all, including a yes the human gave with the command; the human may drop or amend any of them.
+- **The plugin's changes**: the block, Matt's files, the grids file, the change spec file, the git history file, the run file and the settings, grouped by file: a unified diff for an existing file, the whole content for a new one. One yes covers them all, including a yes the human gave with the command; the human may drop or amend any of them.
 - **The GitHub settings**: the commands [github-settings.md](github-settings.md) planned, each with the settings it changes and what it changes beyond them. They change the repository for everyone, so only a yes given to them after they were shown applies them; the human may drop any of them.
 - **Each contrary-instruction proposal**, on its own, shown as [competing-flows.md](competing-flows.md) says. It is the human's own text, so only a yes given to this proposal after it was shown applies it. A yes given earlier, with the command or to the plugin's changes, leaves the instruction as it is.
 
