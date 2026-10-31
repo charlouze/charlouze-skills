@@ -1,12 +1,15 @@
 {
-  "extraKnownMarketplaces": {
-    "charlouze-skills": {
-      "source": { "source": "github", "repo": "charlouze/charlouze-skills" },
-      "autoUpdate": true
-    }
-  },
   "enabledPlugins": {
     "charlouze-skills@charlouze-skills": true,
     "mattpocock-skills@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "charlouze-skills": {
+      "source": {
+        "source": "github",
+        "repo": "charlouze/charlouze-skills"
+      },
+      "autoUpdate": true
+    }
   }
 }
