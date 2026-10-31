@@ -22,13 +22,18 @@ Code review: whenever you run `code-review`, whoever asked for it (the human, `/
 
 Git history: tidy your commits freely until a branch's first push; after it, rewrite nothing (no `rebase`, `commit --amend` or `push --force`) until the whole stack is approved, and correct with `fixup!` or `amend!` commits, propagated by merge. Follow `docs/agents/git-history.md`.
 
+Run: reserved zones declared in `docs/agents/run.md`, applied by ``Stacked delivery with `implement-spec` ``.
+
 ### Stacked delivery with `implement-spec`
 
 When you run `/implement-spec`, deliver the change spec as one stack of pull requests, one layer per ticket, instead of its integration branch. This replaces its steps 3, 4, 5, 7 and 8. The rest holds: the task graph, the frontier, implementer subagents in parallel in their own worktrees, `tdd`.
 
 - **Launch.** One change spec per run. Its tickets are its open tickets labelled with the `ready-for-agent` role's label, or those the human names. Do not assign a ticket when it starts.
 - **One stack.** One native stack per change spec: no integration branch, no merger subagent, no pull request for the whole change spec. Of `gh stack`, use `link` only, never `submit`, `sync`, `rebase` or `merge`. Create branches and push with `git`.
-- **Start.** A ticket starts once all its blockers are pushed, in its own worktree, on a branch from the top of the stack (`main` for the first layer).
+- **Reserved tickets.** A ticket is reserved when it touches a reserved zone, a path that only the main repository touches, the checkout the worktrees hang from. `docs/agents/run.md` declares the zones as globs. At launch, classify each ticket by matching against them the paths where the modules the change spec assigns it live in the code. A reserved ticket's implementer leaves the main repository with no changes when it hands back, pushed or stopped: its work is committed on its branch. A reserved ticket's draft layer is finished in the main repository too.
+- **Main repository at launch.** When `docs/agents/run.md` declares a reserved zone, note the main repository's branch. If it has changes, show its changed files and ask the human what to do with them: discard them (offer this first), set them aside in a stash named after the change spec, or keep them and take no reserved ticket.
+- **Start.** A ticket starts once all its blockers are pushed, in its own worktree, on a branch from the top of the stack (`main` for the first layer). A reserved ticket starts in the main repository instead, one at a time, and only when the main repository has no changes: during the run, never touch a main repository with changes, and the reserved tickets are then not taken, nor their descendants.
+- **A reserved zone found late.** An implementer in a worktree that finds it must touch a reserved zone hands back before touching it, with its work committed. Its ticket becomes reserved and resumes in the main repository on the same branch, once its worktree is removed: the ticket goes on, since this is none of the cases of `Stopping a ticket`.
 - **Layer cycle.** Each implementer subagent runs its layer's whole cycle:
   1. build the ticket with `tdd`;
   2. review the layer alone, its diff against the layer below, with `code-review`, to which the `Code review` line joins `grid-review`;
@@ -53,9 +58,12 @@ When you run `/implement-spec`, deliver the change spec as one stack of pull req
 
   The following tickets then stack on top. When the whole stack has been merged, start a new stack from `main`.
 - **Pull request body.** The template of `pr`, plus `Closes #<ticket>`, except in a draft layer: from the start in the first layer, and in the others only once `gh stack link` has run, since GitHub ignores closing keywords in a pull request based on another branch than `main` outside a stack.
+- **Main repository at the end.** When you noted its branch at launch, switch it back to that branch, and apply the stash set aside then, if any, dropping it once applied. When it has changes by then, touch nothing.
 - **Report.** End the run with one comment on the change spec, giving:
-  - the stack, by the link `gh stack link` prints (a single ticket's pull request, by its own link), and each layer: its ticket's title and its pull request's link.
-  - the stopped tickets: each one's question and its draft layer's link.
+  - the stack, by the link `gh stack link` prints (a single ticket's pull request, by its own link), and each layer: its ticket's title and its pull request's link;
+  - the stopped tickets: each one's question and its draft layer's link;
+  - each ticket not taken, with its reason, and its branch when it holds work;
+  - when the main repository was left with changes at the end: the branch it is on, and the stash that holds the changes set aside at launch, if any.
 
   Your final message points at that comment.
 
