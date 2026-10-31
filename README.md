@@ -27,6 +27,8 @@ La mise en place propose aussi les réglages GitHub qui tiennent cette politique
 
 `/implement-spec` est complétée par la consigne d'empilement, que la mise en place écrit en une section du bloc `## charlouze-skills`, « Stacked delivery with `implement-spec` » (voir les ADR [0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md) et [0004](docs/adr/0004-completer-matt-par-consignes.md)). Elle remplace la branche d'intégration de la skill par une seule pile native par spec de changement, une couche par ticket, liée à son ticket ; le graphe de tickets, la frontière, les implémenteurs en parallèle dans leur worktree et `tdd` restent ceux de Matt. Les tickets se développent en parallèle, chaque couche passe sa revue avant d'être poussée, et les couches s'empilent une à une, dans l'ordre d'arrivée. Un ticket seul donne une PR ordinaire. L'enchaînement finit par un commentaire de rapport sur la spec de changement, avec la pile et ses couches. La mise en place vérifie que l'extension `gh stack` est installée, et sinon en donne la commande d'installation sous **Left to you**, sans s'arrêter : le reste du plugin s'en passe.
 
+`/finalize-stack` finalise une pile de PR approuvée, et l'humain seul la lance. Elle refuse de démarrer si une couche n'est pas approuvée, et dit laquelle ; une couche draft au sommet, laissée par un ticket arrêté, est mise de côté, et la finalisation porte sur les couches du dessous. Un script, `skills/finalize-stack/scripts/finalize-stack.sh`, en fait la partie mécanique, celle qui force-pousse : il fond les corrections et rebase la pile sur le tronc courant sans changer le diff d'aucune couche, pousse toutes les couches ou aucune, et nomme la couche en cause quand il abandonne. Il ne touche ni l'arbre de travail ni les branches locales ; son en-tête dit comment il procède et ce qu'il rend. La skill renomme ensuite la PR du sommet d'une pile de plusieurs couches avec un titre qui résume la pile, vérifie que chaque couche est liée à son ticket et réédite celles qui ne le sont pas, et fait fermer la spec de changement par la PR du sommet quand la pile en couvre tous les tickets. Elle s'arrête là, en donnant la commande de fusion : c'est l'humain qui fusionne, par `gh stack merge <PR du sommet> --merge`.
+
 Le plugin ne porte pas de version : Claude Code prend le SHA du commit, et chaque fusion sur `main` en devient une.
 
 ## Développer le plugin
@@ -51,3 +53,9 @@ claude plugin validate . --json | jq -f .github/untolerated-warnings.jq
 ```
 
 La seconde commande doit afficher `[]`.
+
+Le script de finalisation a ses propres tests, ordinaires, sans modèle ni GitHub : chacun monte un dépôt git local et son remote nu dans un dossier temporaire, isolé de la configuration git du poste. Ils demandent, comme le script, `bash` et `git` 2.41 ou plus récent (Git Bash sous Windows), et la CI ne les lance pas :
+
+```
+bash skills/finalize-stack/scripts/finalize-stack.test.sh
+```

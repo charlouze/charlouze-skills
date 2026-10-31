@@ -19,4 +19,4 @@ The first push of a layer freezes its history: from then on, it is under review.
 
 ## Finalization
 
-Only once the whole stack is approved, and only when the human asks for it, the **finalization** folds each correction into the commit it targets, drops the propagation merges and rebases onto the current `main`, without changing the diff of any layer: at the slightest difference or conflict, it gives up and pushes nothing. The human then merges the stack as a merge commit, titled by its top pull request: on `main`, `git log --first-parent` shows one line per stack.
+Only once the whole stack is approved, and only when the human asks for it, the **finalization** folds each correction into the commit it targets, drops the stack's merges while replaying the conflict resolutions they carry, and rebases onto the current `main`, without changing the diff of any layer: at the slightest difference, or at a conflict that no merge of the stack resolves, it gives up and pushes nothing. The human then merges the stack as a merge commit, titled by its top pull request: on `main`, `git log --first-parent` shows one line per stack.
