@@ -103,4 +103,4 @@ What each one is for:
 - **The heading exists**: keep the block where it is, and plan only what it lacks. One blank line goes before each addition.
   - **A missing line** goes after the block's last line, before its first section.
   - **A missing section** goes at the block's end, in the order the block above gives.
-- **What is present is the human's.** A present line keeps its value, whatever it is: when `Language of produced documents` is present, do not ask for the language. A present section keeps its content as it stands. When that content differs from the plugin's, list the section by its heading under **Kept**, with "the plugin's section" as the value this setup would have written, never its content.
+- **What is present is the human's.** A present line keeps its value, whatever it is: when `Language of produced documents` is present, do not ask its question. A present section keeps its content as it stands. When that content differs from the plugin's, list the section by its heading under **Kept**, with "the plugin's section" as the value this setup would have written, never its content.
