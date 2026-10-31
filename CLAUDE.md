@@ -22,18 +22,27 @@ Code review: whenever you run `code-review`, whoever asked for it (the human, `/
 
 Git history: tidy your commits freely until a branch's first push; after it, rewrite nothing (no `rebase`, `commit --amend` or `push --force`) until the whole stack is approved, and correct with `fixup!` or `amend!` commits, propagated by merge. Follow `docs/agents/git-history.md`.
 
-## Stacked delivery with `implement-spec`
+### Stacked delivery with `implement-spec`
 
-When running `/implement-spec`, deliver the change spec as a stack of PRs, one layer per ticket, instead of an integration branch. This overrides steps 3, 4, 5, 7 and 8 of the skill. The rest is unchanged: the task graph, the frontier, implementer subagents in parallel in their own worktrees, `tdd`.
+When you run `/implement-spec`, deliver the change spec as one stack of pull requests, one layer per ticket, instead of its integration branch. This replaces its steps 3, 4, 5, 7 and 8. The rest holds: the task graph, the frontier, implementer subagents in parallel in their own worktrees, `tdd`.
 
-- No integration branch, no merger subagent, no PR for the whole spec.
-- A ticket starts once all its blockers are pushed, in a worktree branched from the top of the stack (`main` for the first layer).
-- Each implementer runs `code-review` on its own layer (its diff against the layer below) and fixes what it raises in that layer, before anything is pushed.
-- A layer is not one squashed commit: it keeps one commit per distinct change, each with its own message, and no commit fixes another commit of the same layer. Before the first push, tidy them freely (fold a review fix into the commit it fixes).
-- Layers are pushed one at a time, in the order tickets finish: rebase onto the current top of the stack (allowed, since nothing of this layer is pushed yet), rerun the tests (and `code-review` on the layer too if the rebase had conflicts), push, then open a ready-for-review PR whose base is the layer below (`main` for the first).
-- From the second layer on, link the stack with `gh stack link <bottom-branch> … <top-branch>`, and only then write `Closes #<ticket>` in the PR body: GitHub ignores closing keywords in a PR that targets another branch than `main` outside a stack. Never use `gh stack submit`, `sync`, `rebase` or `merge`. A single ticket gives an ordinary PR.
-- Once a layer is pushed, never rewrite it (no rebase, amend or force-push).
-- Report the stack: each layer's ticket and PR link.
+- **Launch.** One change spec per run. Its tickets are its open tickets labelled with the `ready-for-agent` role's label, or those the human names. Do not assign a ticket when it starts.
+- **One stack.** One native stack per change spec: no integration branch, no merger subagent, no pull request for the whole change spec. Of `gh stack`, use `link` only, never `submit`, `sync`, `rebase` or `merge`. Create branches and push with `git`.
+- **Start.** A ticket starts once all its blockers are pushed, in its own worktree, on a branch from the top of the stack (`main` for the first layer).
+- **Layer cycle.** Each implementer subagent runs its layer's whole cycle:
+  1. build the ticket with `tdd`;
+  2. review the layer alone, its diff against the layer below, with `code-review`, to which the `Code review` line joins `grid-review`;
+  3. fix in the layer what the review raises, then tidy its commits as the git history policy says before the first push. Then wait for this layer's turn to push;
+  4. rebase onto the current top of the stack: nothing of the layer is pushed yet, so `Git history` allows it. Rerun the tests, and `code-review` too when the rebase had conflicts;
+  5. push, check with `git ls-remote` that the remote branch points at your local tip, then open a ready-for-review pull request whose base is the layer below (`main` for the first);
+  6. from the second layer on, link the stack with `gh stack link`, giving the pull request numbers from bottom to top so that it pushes nothing.
+- **One push at a time.** Layers are pushed one at a time, in the order their tickets reach the end of step 3, which never puts a layer below one of its blockers. A pushed layer is never rewritten (`Git history`).
+- **A single ticket** gives an ordinary pull request to `main`: the stack is born with the second layer.
+- **Pull request body.** The template of `pr`, plus `Closes #<ticket>`: from the start in the first layer, and in the others only once `gh stack link` has run, since GitHub ignores closing keywords in a pull request based on another branch than `main` outside a stack.
+- **Report.** End the run with one comment on the change spec, giving:
+  - the stack, by the link `gh stack link` prints (a single ticket's pull request, by its own link), and each layer: its ticket's title and its pull request's link.
+
+  Your final message points at that comment.
 
 ## Slicing with `to-tickets`
 
