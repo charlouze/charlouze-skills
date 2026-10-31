@@ -44,7 +44,7 @@ When you run `/implement-spec`, deliver the change spec as one stack of pull req
   2. review the layer alone, its diff against the layer below, with `code-review`, to which the `Code review` line joins `grid-review`;
   3. fix in the layer what the review raises, then tidy its commits as the git history policy says before the first push. Then wait for this layer's turn to push;
   4. rebase onto the current top of the stack: nothing of the layer is pushed yet, so `Git history` allows it. Rerun the tests, and `code-review` too when the rebase had conflicts;
-  5. push, check with `git ls-remote` that the remote branch points at your local tip, then open a ready-for-review pull request whose base is the layer below (`main` for the first);
+  5. push, check with `git ls-remote` that the remote branch points at your local tip, then open a ready-for-review pull request whose base is the layer below (`main` for the first), and give it its points of attention;
   6. from the second layer on, link the stack with `gh stack link`, giving the pull request numbers from bottom to top so that it pushes nothing.
 - **One push at a time.** Layers are pushed one at a time, in the order their tickets reach the end of step 3, which never puts a layer below one of its blockers. A pushed layer is never rewritten (`Git history`).
 - **A single ticket** gives an ordinary pull request to `main`: the stack is born with the second layer.
@@ -59,13 +59,21 @@ When you run `/implement-spec`, deliver the change spec as one stack of pull req
 - **Relaunch.** On a change spec whose stack is still open, first finish each draft layer, from the bottom up, whatever its ticket's label. The layer is pushed, so it changes by added commits only (`Git history`):
   1. when the layers below it have moved, merge its parent into it: `main` once the human has merged them, since the finalization rewrote them, or the lower draft layer once that one has gained commits;
   2. run steps 1 to 3 of the layer cycle, without tidying;
-  3. push, check with `git ls-remote` that the remote branch points at your local tip, mark its pull request ready for review, and add `Closes #<ticket>` to its body.
+  3. push, check with `git ls-remote` that the remote branch points at your local tip, mark its pull request ready for review, give it the points of attention of the added commits, complete its *To settle* and *Manual checks*, and add `Closes #<ticket>` to its body.
 
   The following tickets then stack on top. When the whole stack has been merged, start a new stack from `main`.
-- **Pull request body.** The template of `pr`, plus `Closes #<ticket>`, except in a draft layer: from the start in the first layer, and in the others only once `gh stack link` has run, since GitHub ignores closing keywords in a pull request based on another branch than `main` outside a stack.
+- **Pull request body.** The template of `pr`, plus a *To settle* section and a *Manual checks* section, each titled in the documents language. *Manual checks* lists what the human checks by hand: what neither the tests nor the review prove. The body ends with `Closes #<ticket>`, except in a draft layer: from the start in the first layer, and in the others only once `gh stack link` has run, since GitHub ignores closing keywords in a pull request based on another branch than `main` outside a stack.
+- **Points of attention.** A point of attention is a place in the diff where the reviewer, reading it alone, could miss something or disagree: a non-obvious choice, a fragile spot, a departure from the change spec's design, an assumption made for want of information. A routine decision, or what the tests prove, is none. Rank them from the most to the least important, without a cap.
+  - When the `Agent identity` line names the agent and your instructions give you the means to act as it, post them as the agent: one review with the `COMMENT` event, one comment per point on its line, each opening with its rank (`1/4`).
+  - Otherwise, they form a *Points of attention* section of the body, titled in the documents language, in rank order, each with a permalink to its line at the layer's tip.
+- **To settle.** A decision the implementer took without the human, and submits to them: each with its reason and what it costs if it is wrong. Approving the pull request settles it. A decision that would meet the criteria of an ADR (`domain-modeling`) comes with an ADR proposal. A half-delivered behaviour found during the run is to settle too, as "do not merge without <ticket>", and the ticket carries on. A decision that is neither a point of attention nor to settle is recorded in its commit message alone.
+- **Departing from the design.** An implementer may depart from the change spec's design, as a point of attention. When the departure touches what a later ticket depends on, it also corrects the design in the change spec, where later implementers read it.
+- **Off the ticket.** A drift spotted outside the ticket becomes at once an issue, as the `Drift` section of `docs/agents/triage-labels.md` says, and the pull request cites it. The layer keeps to its ticket: the issue is worked after the run.
 - **Main repository at the end.** When you noted its branch at launch, switch it back to that branch, and apply the stash set aside then, if any, dropping it once applied. When it has changes by then, touch nothing.
 - **Report.** End the run with one comment on the change spec, giving:
   - the stack, by the link `gh stack link` prints (a single ticket's pull request, by its own link), and each layer: its ticket's title and its pull request's link;
+  - each decision to settle, with its layer, and the manual checks to make;
+  - each layer with many points of attention, beyond about five: its ticket was likely too big, or underspecified;
   - the stopped tickets: each one's question and its draft layer's link;
   - each ticket not taken, with its reason, and its branch when it holds work;
   - when the main repository was left with changes at the end: the branch it is on, and the stash that holds the changes set aside at launch, if any.
