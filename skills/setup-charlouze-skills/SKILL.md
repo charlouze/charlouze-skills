@@ -35,6 +35,7 @@ Done when every prerequisite holds. The file holding `## Agent skills` is **the 
 Signals inform the report; they stop nothing and change no file.
 
 - **`gh`.** Run `gh auth status`. When it fails, or no shell is available to run it, the report asks for `gh auth login`: the plugin's skills write to GitHub through `gh`.
+- **`gh stack`.** Run `gh extension list`. When no line names `github/gh-stack`, or no shell is available to run it, the report asks for the extension: the block's ``Stacked delivery with `implement-spec` `` section links the stack through it. The rest of the plugin works without it.
 - **Competing flow plugins.** Find each enabled plugin of a competing flow, by the "Competing flow plugins" section of [competing-flows.md](competing-flows.md).
 - **Missing grids.** Read the grids declaration that `grid-review` reads: `docs/agents/grids.md`, or [the default declaration](../grid-review/default-grids.md) when that file is missing. A declared grid is missing when none of your available skills bears its skill's short name, bare or after a `<plugin>:` prefix: `clean-code` is found as `clean-code` or as `code-craftsmanship:clean-code`. Note each missing grid's skill, and whether the default declaration names that skill too.
 
@@ -84,6 +85,7 @@ End on this report. Write each heading, and under it one line per item; write "n
 - **Left to you**:
   - Install the plugins for this project, since the project settings alone do not install `mattpocock-skills` (it lives outside its marketplace): in a terminal at the repo root, `claude plugin marketplace add charlouze/charlouze-skills` if that marketplace is unknown, then `claude plugin install charlouze-skills@charlouze-skills --scope project`, which pulls `mattpocock-skills` as a dependency; or the same through `/plugin` in a session. Then `/reload-plugins`. Each collaborator runs the install once.
   - `gh auth login`, when step 2 found `gh` disconnected or could not check it.
+  - `gh extension install github/gh-stack`, when step 2 found the extension missing or could not check it: until then, `/implement-spec` cannot link its stack.
   - Each GitHub setting still missing, declined, unapplied for want of rights, or unread: its command written out in full, from [github-settings.md](github-settings.md).
   - Each missing grid step 2 found, by its skill. When the default declaration names it, its skill is one of wondelai's: add the command that installs that skill alone, `npx skills add https://github.com/wondelai/skills --skill <skill>`, written out in full for each missing one. Never point to wondelai's plugins, which bring many skills that are not grids. Any other missing grid is the human's to install, or to drop from `docs/agents/grids.md`. This setup installs nothing.
   - For each competing flow plugin step 2 found: the file that enables it, `/plugin disable <plugin>@<marketplace>`, then `/reload-plugins`.
