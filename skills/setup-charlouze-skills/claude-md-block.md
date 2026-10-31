@@ -15,6 +15,8 @@ Code review: whenever you run `code-review`, whoever asked for it (the human, `/
 
 Change spec: whenever you run `/to-spec`, also follow `docs/agents/change-spec.md`.
 
+Git history: tidy your commits freely until a branch's first push; after it, rewrite nothing (no `rebase`, `commit --amend` or `push --force`) until the whole stack is approved, and correct with `fixup!` or `amend!` commits, propagated by merge. Follow `docs/agents/git-history.md`.
+
 ### Slicing with `to-tickets`
 
 When you run `/to-tickets` on a change spec, keep its issue template and add the following.
@@ -37,6 +39,7 @@ What each one is for:
 - **`Grids`** points at the project's declaration of its grids, which [grids-file.md](grids-file.md) plans.
 - **`Code review`** joins the Grids axis to every review: Matt's `code-review` is completed, never replaced, so that `/implement` and `/implement-spec` get the axis as they are.
 - **`Change spec`** points `/to-spec` at the instructions that complete it, which [change-spec-file.md](change-spec-file.md) plans.
+- **`Git history`** states the policy in short, so that no session rewrites a pushed branch, and points at the whole policy, which [git-history-file.md](git-history-file.md) plans.
 - **``Slicing with `to-tickets` ``** completes `/to-tickets` for a change spec written by the `Change spec` instructions.
 
 ## Planning the change

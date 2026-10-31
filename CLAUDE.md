@@ -20,6 +20,8 @@ Grids: declared in `docs/agents/grids.md`, applied by `grid-review`.
 
 Code review: whenever you run `code-review`, whoever asked for it (the human, `/implement`, `/implement-spec`), also call the Skill tool with `grid-review` on the same fixed point, and report its `## Grids` section beside `## Standards` and `## Spec`.
 
+Git history: tidy your commits freely until a branch's first push; after it, rewrite nothing (no `rebase`, `commit --amend` or `push --force`) until the whole stack is approved, and correct with `fixup!` or `amend!` commits, propagated by merge. Follow `docs/agents/git-history.md`.
+
 ## Stacked delivery with `implement-spec`
 
 When running `/implement-spec`, deliver the change spec as a stack of PRs, one layer per ticket, instead of an integration branch. This overrides steps 3, 4, 5, 7 and 8 of the skill. The rest is unchanged: the task graph, the frontier, implementer subagents in parallel in their own worktrees, `tdd`.
