@@ -45,7 +45,7 @@ When you run `/implement-spec`, deliver the change spec as one stack of pull req
 - **A single ticket** gives an ordinary pull request to `main`: the stack is born with the second layer.
 - **Pull request body.** The template of `pr`, plus `Closes #<ticket>`: from the start in the first layer, and in the others only once `gh stack link` has run, since GitHub ignores closing keywords in a pull request based on another branch than `main` outside a stack.
 - **Report.** End the run with one comment on the change spec, giving:
-  - the stack, by the link of its top pull request, and each layer: its ticket's title and its pull request's link.
+  - the stack, by the link `gh stack link` prints (a single ticket's pull request, by its own link), and each layer: its ticket's title and its pull request's link.
 
   Your final message points at that comment.
 ```
