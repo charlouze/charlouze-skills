@@ -11,7 +11,7 @@
 #   FAKE_GH_FAIL_CODE  avec ce code (défaut : 1)
 #
 # Il reconnaît chaque requête par le nom d'opération que lui donne le script
-# (`LayerThreads`, `ReplyOnPr`…) : renommer l'une d'elles demande de le suivre ici.
+# (`LayerThreads`, `CommentOnPr`…) : renommer l'une d'elles demande de le suivre ici.
 #
 # Comme le vrai `gh`, `api graphql --paginate` ne suit les pages que si la
 # requête déclare `$endCursor` et demande `pageInfo`, et rend alors un document
@@ -134,7 +134,7 @@ post() { # opération
       j -nc --arg id "${vars[thread]}" --arg body "${vars[body]}" '{on: "thread", id: $id, body: $body}' >>"$log"
       j -nc --arg url "$url" '{data: {addPullRequestReviewThreadReply: {comment: {url: $url}}}}'
       ;;
-    ReplyOnPr)
+    CommentOnPr)
       j -e --arg id "${vars[subject]}" 'any(.prs[]; .id == $id)' "$world" >/dev/null \
         || fail "Could not resolve to a node with the global id of '${vars[subject]}'"
       update_world '(.prs[] | select(.id == $id) | .comments) += [{id: ("IC_posted_" + $n), author: {login: $user}, body: $body, url: $url, createdAt: $stamp}]' \
@@ -171,7 +171,7 @@ api_graphql() {
   case $operation in
     LayerThreads | LayerReviews | LayerComments | ThreadComments) paged "$operation" ;;
     Element) element ;;
-    ReplyInThread | ReplyOnPr) post "$operation" ;;
+    ReplyInThread | CommentOnPr) post "$operation" ;;
     *) fail "api graphql: unknown operation: ${operation:-none}" ;;
   esac
 }

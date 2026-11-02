@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Le script de la reprise : il lit les éléments en attente d'une pile, et y
 # répond. Il est le seul à lire la pile et ses échanges sur GitHub, et le seul à
-# y poster : la marque de l'agent et la règle de ce qui est en attente ne vivent
+# y poster ce qu'une reprise lit ensuite comme un message de l'agent (réponses et
+# renvois) : la marque de l'agent et la règle de ce qui est en attente ne vivent
 # qu'ici.
 #
 #   rework-stack.sh pending <PR>
 #   rework-stack.sh reply <element> <body>
+#   rework-stack.sh comment <PR> <body>
 #
 # Un message de l'agent est un message dont le corps commence par `🤖`, sous
 # quelque identité qu'il soit posté : le script ne lit aucun auteur pour le
@@ -34,13 +36,17 @@
 # Un corps de revue ou un commentaire de PR n'est plus en attente dès qu'un
 # commentaire de PR de l'agent, sur la même PR, lui répond : sa première ligne
 # est `🤖 <lien de l'élément>`, la forme que lui donne `reply`. Les autres
-# commentaires de l'agent ne répondent à rien.
+# commentaires de l'agent, comme ceux de `comment`, ne répondent à rien.
 #
 # `reply` répond à un élément par son `id` : dans le fil pour un fil ; pour un
 # corps de revue ou un commentaire, par un commentaire de PR qui le cite (son
 # lien, puis son corps). Il fait commencer la réponse par `🤖`, et écrit le lien
 # de la réponse postée. Le corps est pris tel quel, même quand il commence par
 # des tirets.
+#
+# `comment` poste sur une PR un commentaire de l'agent qui ne répond à aucun
+# élément en particulier, comme un renvoi vers un élément posé ailleurs. Il le
+# fait commencer par `🤖`, et écrit le lien du commentaire posté.
 #
 # Code : 0 fait, 1 échec de `gh`, 2 usage, 3 pile qui fourche (deux PR ouvertes
 # sur une même base, nommées sur la sortie d'erreur). En échec, `pending`
@@ -69,7 +75,8 @@ leave() { # code message
 
 usage() {
   leave 2 "usage: rework-stack.sh pending <PR>
-       rework-stack.sh reply <element> <body>"
+       rework-stack.sh reply <element> <body>
+       rework-stack.sh comment <PR> <body>"
 }
 
 # jq natif sous Windows écrit ses fins de ligne en CRLF.
@@ -257,20 +264,32 @@ reply_in_thread() { # fil corps
 # Un commentaire de PR qui cite l'élément : son lien, puis son corps. La
 # première ligne, `🤖 <lien>`, est celle que lit `pending`.
 reply_on_pr() { # élément-lu corps
-  local subject url quote body
+  local subject url quote
   subject=$(j -r '.pullRequest.id // ""' <<<"$1")
   [ -n "$subject" ] || leave 2 "not an element of a PR"
   url=$(j -r .url <<<"$1")
   quote=$(j -r .body <<<"$1" | sed 's/^/> /; s/^> $/>/')
-  body=$(marked "$url
+  post_on_pr "$subject" "$url
 
 $quote
 
-$2")
-  gh api graphql -f subject="$subject" -f body="$body" -f query='
-    mutation ReplyOnPr($subject: ID!, $body: String!) {
+$2"
+}
+
+# Un commentaire de PR de l'agent, marqué.
+post_on_pr() { # identifiant-de-la-PR corps
+  local body
+  body=$(marked "$2")
+  gh api graphql -f subject="$1" -f body="$body" -f query='
+    mutation CommentOnPr($subject: ID!, $body: String!) {
       addComment(input: {subjectId: $subject, body: $body}) { commentEdge { node { url } } }
     }' | j -r .data.addComment.commentEdge.node.url
+}
+
+comment() { # PR corps
+  local info
+  info=$(pr_view "$1" id)
+  post_on_pr "$(j -r .id <<<"$info")" "$2"
 }
 
 reply() { # élément corps
@@ -302,6 +321,10 @@ case $command in
   reply)
     [ $# -eq 2 ] && [ -n "$1" ] && [ -n "$2" ] || usage
     reply "$1" "$2"
+    ;;
+  comment)
+    [ $# -eq 2 ] && [[ "$1" =~ ^[0-9]+$ ]] && [ -n "$2" ] || usage
+    comment "$1" "$2"
     ;;
   *) usage ;;
 esac

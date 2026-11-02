@@ -337,6 +337,21 @@ posted() { j -c "$@" "$FAKE_GH_LOG"; }
   assert_eq "" "$(posted .)" "posted"
 }
 
+@test "comment posts a PR comment of the agent's, marked, which answers nothing" {
+  pr 1 layer-a main
+  pr 2 layer-b layer-a
+  comment 2 C1 alice "And the README?" 2026-01-01T00:00:01Z
+
+  rework comment 2 "Corrected for #3 by abc123."
+  assert_eq 0 "$status" "status"
+  assert_eq "https://github.com/o/r/posted/1" "$output" "link of the comment"
+  assert_eq '[{"on":"pr","id":"PR_2","body":"🤖 Corrected for #3 by abc123."}]' "$(posted -s .)" "posted"
+
+  rework pending 2
+  assert_eq 0 "$status" "status of pending"
+  assert_eq "C1" "$(out -r '.layers[] | select(.number == 2) | .pending | map(.id) | join(" ")')" "pending on #2"
+}
+
 @test "a failure of gh fails with code 1, whatever gh's own code, and gives no partial stack" {
   pr 1 layer-a main
   pr 2 layer-b layer-a
@@ -352,13 +367,19 @@ posted() { j -c "$@" "$FAKE_GH_LOG"; }
   rework reply T1 "Renamed."
   assert_eq 1 "$status" "status of reply"
   [[ "$output" == *"simulated failure"* ]] || { echo "not a failure of gh: $output"; return 1; }
+
+  export FAKE_GH_FAIL=CommentOnPr FAKE_GH_FAIL_CODE=2
+  rework comment 1 "Corrected."
+  assert_eq 1 "$status" "status of comment"
+  [[ "$output" == *"simulated failure"* ]] || { echo "not a failure of gh: $output"; return 1; }
   assert_eq "" "$(posted .)" "posted"
 }
 
 @test "a wrong usage fails with code 2" {
   pr 1 layer-a main
   for usage in "" "merge 1" "pending" "pending one" "pending 1 2" "pending --login 1" "pending --verbose 1" \
-    "reply T1" "reply T1 ''" "reply T1 body extra"; do
+    "reply T1" "reply T1 ''" "reply T1 body extra" \
+    "comment 1" "comment one body" "comment 1 ''" "comment 1 body extra"; do
     eval "rework $usage"
     assert_eq 2 "$status" "status of \"$usage\""
   done
