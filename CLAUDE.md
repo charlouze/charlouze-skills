@@ -20,9 +20,21 @@ Grids: declared in `docs/agents/grids.md`, applied by `grid-review`.
 
 Code review: whenever you run `code-review`, whoever asked for it (the human, `/implement`, `/implement-spec`), also call the Skill tool with `grid-review` on the same fixed point, and report its `## Grids` section beside `## Standards` and `## Spec`.
 
+Change spec: whenever you run `/to-spec`, also follow `docs/agents/change-spec.md`.
+
 Git history: tidy your commits freely until a branch's first push; after it, rewrite nothing (no `rebase`, `commit --amend` or `push --force`) until the whole stack is approved, and correct with `fixup!` or `amend!` commits, propagated by merge. Follow `docs/agents/git-history.md`.
 
 Run: reserved zones declared in `docs/agents/run.md`, applied by ``Stacked delivery with `implement-spec` ``.
+
+### Slicing with `to-tickets`
+
+When you run `/to-tickets` on a change spec, keep its issue template and add the following.
+
+- **Blocks.** The change spec's `Spec delta` holds the blocks (`D1`, `D2`…): the exact text to write in a context's functional spec, its glossary or the context map. Each ticket names, in *What to build*, the blocks it transcribes ("Transcribes D2 and D5", in the documents language). Each block goes to exactly one ticket. The template's rule against file paths spares block numbers: name them. Show each ticket's blocks in the breakdown you present.
+- **Slicing rule.** Each ticket, merged alone after its blockers, leaves no user facing a half-delivered behaviour, and every user story of the change spec is delivered by at least one ticket. When the change spec cannot be sliced so without a flag it does not declare, say so and stop, publishing nothing: the change spec must be revised first.
+- **A context without a functional spec**, new or existing: the ticket that transcribes the blocks opening its `SPEC.md` comes first in that context, as a blocker of every other ticket that touches it.
+- **Each flag the change spec declares**: its gated tickets are those that deliver a part it gates. The first gated ticket, a blocker of every other gated ticket, transcribes the block that adds the gating sentence. The lift ticket removes the flag from the code, keeping the gated behaviour on, transcribes the block that removes the gating sentence, and is blocked by every gated ticket. When the flag outlives the change spec, lifted on a condition, the lift ticket states that condition too and stays open until it holds.
+- **Publishing.** Create the label `context:<context>` for each context the change spec touches, when it is missing. For each context the change spec marks as existing, not adopted, also open an issue titled "Adopt <context>" in the documents language, labelled with the `needs-triage` role's label and `context:<context>`, saying that its functional spec describes only what this change touches.
 
 ### Stacked delivery with `implement-spec`
 
@@ -74,12 +86,3 @@ When you run `/implement-spec`, deliver the change spec as one stack of pull req
   - when the main repository was left with changes at the end: the branch it is on, and the stash that holds the changes set aside at launch, if any.
 
   Your final message points at that comment.
-
-## Slicing with `to-tickets`
-
-When running `/to-tickets` on a change spec, keep the skill's issue template and add the following.
-
-- The change spec's `Spec delta` holds the blocks (`D1`, `D2`…): the exact text to write in a context's functional spec, glossary or the context map. Each ticket names, in *What to build*, the blocks it transcribes ("Transcribes D2 and D5"). Each block goes to exactly one ticket. A block number is not a file path: name it. Show each ticket's blocks in the breakdown you present.
-- A ticket merged alone after its blockers must not leave any user facing a half-delivered behaviour, and every user story of the change spec is delivered by at least one ticket. If this cannot hold without a flag the change spec does not declare, say so and stop: the change spec must be revised first.
-- The ticket that transcribes the blocks creating a context's spec comes first in that context. If the change spec declares a flag, the first gated ticket transcribes the block that adds the gating sentence, and the lift ticket is blocked by every gated ticket.
-- When publishing, create the label `context:<context>` for each context the change spec touches, if it is missing. For each context the change spec marks as existing but not adopted, also open an issue `Adopter <context>` with the labels `needs-triage` and `context:<context>`, saying that its functional spec only describes what this change touches. A new context gets none.
