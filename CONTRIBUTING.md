@@ -23,7 +23,12 @@ claude plugin validate . --json | jq -f .github/untolerated-warnings.jq
 
 La seconde commande doit afficher `[]`.
 
-Le script de finalisation, `skills/finalize-stack/scripts/finalize-stack.sh`, a ses propres tests, ordinaires, sans modèle ni GitHub, écrits pour [bats](https://bats-core.readthedocs.io/) : chacun monte un dépôt git local et son remote nu dans son dossier temporaire, isolé de la configuration git du poste. Le `package.json` de la racine fixe la version de bats ; il ne sert qu'au développement. Les tests demandent Node, et, comme le script, `bash` et `git` 2.41 ou plus récent (Git Bash sous Windows) ; la CI ne les lance pas :
+Les scripts des skills ont leurs propres tests, ordinaires, sans modèle ni GitHub, écrits pour [bats](https://bats-core.readthedocs.io/) :
+
+- ceux du script de finalisation, `skills/finalize-stack/scripts/finalize-stack.sh`, montent chacun un dépôt git local et son remote nu dans leur dossier temporaire, isolé de la configuration git du poste ;
+- ceux du script de la reprise, `skills/rework-stack/scripts/rework-stack.sh`, préparent chacun un monde JSON que sert un `gh` simulé, `skills/rework-stack/scripts/fake-gh/gh`, placé en tête du `PATH` : il garde ce qu'on lui poste, et aucun test n'atteint le vrai `gh`.
+
+Le `package.json` de la racine fixe la version de bats ; il ne sert qu'au développement. Les tests demandent Node, et ce que demandent les scripts : `bash` (Git Bash sous Windows) ; `git` 2.41 ou plus récent pour la finalisation ; `jq` pour la reprise. La CI ne les lance pas :
 
 ```
 npm install

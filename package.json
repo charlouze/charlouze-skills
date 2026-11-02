@@ -3,7 +3,7 @@
   "private": true,
   "description": "Outils de développement du plugin charlouze-skills : seulement les tests des scripts.",
   "scripts": {
-    "test": "bats skills/finalize-stack/scripts"
+    "test": "bats skills/finalize-stack/scripts skills/rework-stack/scripts"
   },
   "devDependencies": {
     "bats": "1.13.0"
