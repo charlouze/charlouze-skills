@@ -84,6 +84,10 @@ _Avoid_ : remarque, note de revue
 La passe où l'agent traite les commentaires de revue d'une pile, couche par couche.
 _Avoid_ : correction (c'est un `fixup!`), retours
 
+**Fil en attente** (*Pending thread*) :
+Un fil de revue non résolu, sur une couche ni approuvée ni draft, dont le dernier message ne vient pas de l'agent. Seul l'humain le résout.
+_Avoid_ : commentaire non traité, retour ouvert
+
 **Adoption** (*Adoption*) :
 La passe qui décrit dans sa spec fonctionnelle tout ce que fait déjà un contexte, depuis ses documents ou l'humain.
 _Avoid_ : migration, rétro-spec
