@@ -86,3 +86,9 @@ When you run `/implement-spec`, deliver the change spec as one stack of pull req
   - when the main repository was left with changes at the end: the branch it is on, and the stash that holds the changes set aside at launch, if any.
 
   Your final message points at that comment.
+
+## README
+
+The README is this plugin's home page: its presentation, its flow (the diagram, then one line per step), its installation, and one table row per skill of the plugin or of Matt's that the plugin completes. A rule's detail lives in its source (the skill, the setup's template of its instruction, or an ADR), and each line or row links to it.
+
+When a change adds, renames or removes a skill, or changes what a flow step does or what an instruction adds, update its row and its step's line in the README, and the flow diagram when a step changes. A rule you find only in the README moves to its source.
