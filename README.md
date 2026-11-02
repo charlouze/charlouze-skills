@@ -1,64 +1,75 @@
 # charlouze-skills
 
-Plugin de skills d'ingénierie pour Claude Code, qui se pose par-dessus [`mattpocock-skills`](https://github.com/mattpocock/skills) pour des projets produit et jeu vidéo. Il complète le flux de Matt sans le remplacer (voir [l'ADR 0004](docs/adr/0004-completer-matt-par-consignes.md)). Le dépôt est à la fois le plugin et sa marketplace.
+Plugin de skills d'ingénierie pour Claude Code, qui se pose par-dessus [`mattpocock-skills`](https://github.com/mattpocock/skills) pour des projets produit et jeu vidéo. Il complète le flux de Matt par des consignes, sans le remplacer (voir [l'ADR 0004](docs/adr/0004-completer-matt-par-consignes.md)). Le dépôt est à la fois le plugin et sa marketplace.
+
+## Le flux
+
+```mermaid
+flowchart TD
+    idee(["Une idée de changement"]) --> taille{"Tient-il en une session ?"}
+    taille -- oui --> grill["/grill-with-docs"]
+    taille -- non --> wayfinder["/wayfinder"]
+    grill --> spec["/to-spec"]
+    wayfinder --> spec
+    spec --> blocs(["Relire les blocs"])
+    blocs --> tickets["/to-tickets"]
+    tickets --> enchainement["/implement-spec"]
+    enchainement --> relecture(["Relire la pile"])
+    relecture --> finalisation["/finalize-stack"]
+    finalisation --> fusion(["Fusionner la pile"])
+
+    classDef completee stroke-dasharray:6 4,stroke-width:2px
+    classDef ajoutee stroke-width:4px
+    class spec,tickets,enchainement completee
+    class finalisation ajoutee
+```
+
+Forme arrondie : une étape de l'humain ; rectangle : une commande que l'humain lance et que l'agent mène. Pour les rectangles, trait pointillé : une skill de Matt que le plugin complète ; trait épais : une skill que le plugin ajoute ; trait fin : une skill de Matt telle quelle.
+
+- **`/grill-with-docs`**, quand le changement tient en une session (le cas par défaut) : la skill de Matt ; `domain-modeling`, qu'elle appelle, écrit le glossaire au format du plugin ([consigne](skills/setup-charlouze-skills/matt-files.md)).
+- **`/wayfinder`**, quand il est trop gros pour une session et encore flou : la skill de Matt, dont la carte de décisions mène à la spec de changement ([Matt](https://github.com/mattpocock/skills)).
+- **`/to-spec`** : les contextes touchés, l'écart en blocs, les risques et les grilles ([consigne](skills/setup-charlouze-skills/change-spec.md)).
+- **Relire les blocs**, par l'humain : la spec de changement n'est publiée qu'une fois ses blocs et ses flags validés ([consigne](skills/setup-charlouze-skills/change-spec.md)).
+- **`/to-tickets`** : chaque ticket nomme les blocs qu'il transcrit et tient seul une fois fusionné ([consigne](skills/setup-charlouze-skills/claude-md-block.md)).
+- **`/implement-spec`** : une pile, une couche par ticket, chacune revue avant d'être poussée ([consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md)).
+- **Relire la pile**, par l'humain : chaque couche signale ses points d'attention et ses arbitrages ; les corrections s'ajoutent sans réécrire la pile ([politique d'historique git](skills/setup-charlouze-skills/git-history.md)).
+- **`/finalize-stack`**, lancée par l'humain : la finalisation fond les corrections sans changer le diff d'aucune couche ([skill](skills/finalize-stack/SKILL.md)).
+- **Fusionner la pile**, par l'humain : `gh stack merge <PR du sommet> --merge`, un merge commit par pile ([ADR 0002](docs/adr/0002-merge-commit-apres-finalisation.md)).
 
 ## Installation
 
 ```
+claude plugin marketplace add anthropics/claude-plugins-official
 claude plugin marketplace add charlouze/charlouze-skills
 claude plugin install charlouze-skills@charlouze-skills
 ```
 
-L'installation tire aussi `mattpocock-skills@claude-plugins-official`, dont le plugin dépend. Il faut pour cela que la marketplace `claude-plugins-official` soit connue de Claude Code (`claude plugin marketplace add anthropics/claude-plugins-official` sinon).
+La première commande ne sert que si Claude Code ne connaît pas encore la marketplace de `mattpocock-skills`, dont le plugin dépend.
 
-Pour préparer un projet, lancer `/setup-matt-pocock-skills`, puis `/setup-charlouze-skills`. La seconde écrit le bloc `## charlouze-skills` du `CLAUDE.md` (avec la consigne de découpage de `/to-tickets` et la consigne d'empilement de `/implement-spec`), la déclaration des grilles, `docs/agents/grids.md`, la consigne de la spec de changement, `docs/agents/change-spec.md`, la politique d'historique git, `docs/agents/git-history.md`, et les zones réservées au dépôt principal, `docs/agents/run.md`, et déclare la marketplace et les deux plugins dans `.claude/settings.json`, après avoir montré chaque changement. Elle se relance sans risque, ne commite rien, et finit par la liste de ce qui reste à faire.
+Puis, dans une session du projet : `/setup-matt-pocock-skills`, puis `/setup-charlouze-skills`. La mise en place montre chaque changement avant de l'écrire, ne commite rien, se relance sans risque et finit par ce qui reste à faire.
 
-Elle complète aussi les fichiers de Matt, pour que `domain-modeling` et `triage` suivent les règles du plugin : des sections balisées `<!-- charlouze-skills -->` dans `docs/agents/domain.md` (le format du glossaire et la carte des contextes) et dans `docs/agents/triage-labels.md` (les dérives), et la disposition multi-contexte dans `domain.md` et dans la ligne `### Domain docs` du `CLAUDE.md`. Une relance de `/setup-matt-pocock-skills` défait ces ajouts ; relancer `/setup-charlouze-skills` ensuite les refait.
+Le plugin n'a pas de version : chaque fusion sur `main` en fait une.
 
-`grid-review` juge par les grilles du projet, un sous-agent par grille, l'objet de l'un des trois points d'accroche : un brouillon de spec de changement, entier (spec) ou par ses `Implementation Decisions`, où vit sa conception (conception), ou un diff (revue). En revue, son rapport forme un axe Grilles à côté des axes Standards et Spec de `code-review` (voir [l'ADR 0001](docs/adr/0001-grilles-axe-de-revue-separe.md)). La consigne de la spec de changement l'appelle aux points d'accroche spec et conception. Elle lit `docs/agents/grids.md`, ou à défaut la déclaration par défaut, [`skills/grid-review/default-grids.md`](skills/grid-review/default-grids.md). La mise en place écrit cette déclaration en clair dans `docs/agents/grids.md`, quand le fichier manque, et deux lignes dans le bloc `## charlouze-skills` : `Grids`, qui pointe vers le fichier, et `Code review`, qui joint `grid-review` à toute revue `code-review`, qu'elle soit lancée par l'humain, par `/implement` ou par `/implement-spec`. Les grilles par défaut sont des skills de wondelai (`domain-driven-design`, `clean-architecture`, `software-design-philosophy`, `clean-code`), dont le plugin ne dépend pas : une grille absente est signalée dans le rapport, sans rien bloquer.
+## Ce que le plugin apporte
 
-`/to-spec` est complétée par `docs/agents/change-spec.md`, que la mise en place écrit quand il manque, avec la ligne `Change spec` du bloc qui le fait suivre. La spec de changement y gagne trois sections : `Contexts`, les contextes qu'elle touche, avec leur frontière et leur état ; `Spec delta`, son écart en blocs ; `Risks`, ses risques. Un flag n'y entre que par exception, quand les user stories ne se livrent pas en tickets qui tiennent seuls : l'agent le propose, les `Implementation Decisions` le déclarent (nom, défaut, parties gardées, levée), un bloc ajoute sa phrase de garde à la spec fonctionnelle et un autre l'en retire, et les `Testing Decisions` couvrent ses deux valeurs. Elle passe par les grilles des points d'accroche spec et conception, et n'est publiée qu'après la relecture par l'humain de tous ses blocs et de ses flags.
+| Skill | Ce qu'elle fait, ou ce que le plugin y change | Lancée par | Détail |
+|---|---|---|---|
+| `setup-charlouze-skills` | Prépare le dépôt : ses consignes, ses déclarations et ses réglages GitHub. | l'humain | [skill](skills/setup-charlouze-skills/SKILL.md) |
+| `grid-review` | Juge par les grilles du projet un brouillon de spec de changement ou un diff, aux trois points d'accroche. | `/to-spec`, `code-review` | [skill](skills/grid-review/SKILL.md), [ADR 0001](docs/adr/0001-grilles-axe-de-revue-separe.md) |
+| `writing-functional-specs` | Donne la forme et les invariants d'une spec fonctionnelle. | `/to-spec` | [skill](skills/writing-functional-specs/SKILL.md) |
+| `finalize-stack` | Finalise une pile approuvée, avant que l'humain la fusionne. | l'humain | [skill](skills/finalize-stack/SKILL.md) |
+| `to-spec` (Matt) | Ajoute à la spec de changement ses contextes, son écart en blocs et ses risques. | l'humain | [consigne](skills/setup-charlouze-skills/change-spec.md) |
+| `to-tickets` (Matt) | Fait nommer à chaque ticket les blocs qu'il transcrit. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
+| `implement-spec` (Matt) | Livre la spec de changement en une pile, une couche par ticket. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md) |
+| `code-review` (Matt) | Joint à chaque revue l'axe Grilles de `grid-review`. | l'humain ou `/implement-spec` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
+| `domain-modeling` (Matt) | Écrit le glossaire au format du plugin, et la carte des contextes. | `/grill-with-docs` | [consigne](skills/setup-charlouze-skills/matt-files.md) |
+| `triage` (Matt) | Range les dérives entre le code et les specs fonctionnelles. | l'humain | [consigne](skills/setup-charlouze-skills/matt-files.md) |
+| `pr` (Matt) | Ajoute au corps d'une couche ses arbitrages et ses vérifications manuelles. | `/implement-spec` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 
-`/to-tickets` est complétée par la consigne de découpage, que la mise en place écrit en une section du bloc `## charlouze-skills`, « Slicing with `to-tickets` ». Le modèle d'issue de Matt ne change pas : chaque ticket nomme dans *What to build* les blocs qu'il transcrit, chaque bloc va dans un seul ticket, et le découpage présenté montre les blocs de chaque ticket. Chaque ticket, fusionné seul après ses bloqueurs, ne laisse aucun utilisateur devant un comportement à moitié livré, et chaque user story est livrée par au moins un ticket ; quand il y faudrait un flag que la spec de changement ne déclare pas, l'agent s'arrête sans rien publier, et la spec de changement est à reprendre. Dans un contexte sans spec fonctionnelle, le ticket qui en ouvre la spec passe en premier, et bloque les autres tickets de ce contexte. Pour un flag déclaré, le premier ticket gardé transcrit le bloc qui ajoute la phrase de garde, et bloque les autres tickets gardés ; le ticket de levée retire le flag du code, transcrit le bloc qui retire la phrase de garde, et est bloqué par tous les tickets gardés. S'il survit à la spec de changement, le ticket de levée porte sa condition de levée et reste ouvert. La publication crée le label `context:<contexte>` de chaque contexte touché, s'il manque, et ouvre une issue d'adoption pour chaque contexte existant non adopté. Une section du bloc est, comme une ligne, à l'humain une fois écrite : la mise en place ajoute celle qui manque et garde celle qui est là, listée sous **Kept** quand elle diffère.
+Les grilles par défaut ([déclaration](skills/grid-review/default-grids.md)) sont des skills de wondelai, que le plugin ne requiert pas.
 
-La politique d'historique git (voir [l'ADR 0002](docs/adr/0002-merge-commit-apres-finalisation.md)) vit dans `docs/agents/git-history.md`, que la mise en place écrit quand il manque, avec la ligne `Git history` du bloc, qui la résume et y renvoie. Avant le premier push d'une branche, l'agent range ses commits librement ; après, il ne réécrit rien tant que toute la pile n'est pas approuvée : ni `rebase`, ni `commit --amend`, ni `push --force`. Une correction de ce qu'un commit de la pile fait déjà devient un `fixup!` ou un `amend!` qui vise un commit de sa propre couche, une modification nouvelle un commit normal, et l'agent dit lequel il a choisi. Les corrections montent la pile par `git merge`, seulement dans une couche qui pousse de toute façon, et `main` n'y entre qu'en cas de conflit. Une fois toute la pile approuvée, la finalisation fond les corrections sans changer le diff d'aucune couche, puis l'humain fusionne la pile en merge commit. Une PR seule suit la même règle, comme une pile d'une couche.
+## Pour aller plus loin
 
-La mise en place propose aussi les réglages GitHub qui tiennent cette politique : le merge commit pour seule méthode de fusion, titré par la PR (`merge_commit_title=PR_TITLE`) et sans corps (`merge_commit_message=BLANK`), pour que `main` en `--first-parent` montre une ligne par pile ; et le rejet des approbations périmées sur la branche par défaut, par un ruleset qui y exige alors une PR, sans approbation requise. Elle lit les réglages par `gh`, ne repropose pas ceux qui sont en place, et applique les autres par `gh` après un oui donné à ces réglages seuls. Ce qu'elle ne peut pas appliquer, faute de droits, ou ce que l'humain refuse, finit en commandes sous **Left to you**.
-
-`/implement-spec` est complétée par la consigne d'empilement, que la mise en place écrit en une section du bloc `## charlouze-skills`, « Stacked delivery with `implement-spec` » (voir les ADR [0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md) et [0004](docs/adr/0004-completer-matt-par-consignes.md)). Elle remplace la branche d'intégration de la skill par une seule pile native par spec de changement, une couche par ticket, liée à son ticket ; le graphe de tickets, la frontière, les implémenteurs en parallèle dans leur worktree et `tdd` restent ceux de Matt. Les tickets se développent en parallèle, chaque couche passe sa revue avant d'être poussée, et les couches s'empilent une à une, dans l'ordre d'arrivée. Un ticket seul donne une PR ordinaire. L'enchaînement n'arrête un ticket que dans quatre cas : le ticket passe en `needs-info` avec sa question, ses descendants ne sont pas lancés, et son travail partiel devient une couche draft au sommet de la pile, qu'une relance termine d'abord. Chaque couche signale au relecteur ses points d'attention, classés, et sa PR porte ses arbitrages, « À trancher », et les vérifications manuelles ; une dérive repérée hors du ticket devient une issue de triage. L'enchaînement finit par un commentaire de rapport sur la spec de changement, avec la pile, ses couches, les arbitrages, les vérifications manuelles, les tickets arrêtés et les tickets non pris avec leur raison. Quand les instructions de l'humain font agir l'agent sous sa propre identité GitHub, les points d'attention sont des commentaires de revue sur leurs lignes, postés par l'agent ; sinon, une section de la description de la PR. Cette identité tient à chaque humain, pas au dépôt : elle se déclare dans ses instructions personnelles. Quand l'agent n'en a pas, la mise en place propose de lui en donner une (une GitHub App, et un wrapper qui l'utilise pour `git` et `gh`), sans l'imposer. La mise en place vérifie que l'extension `gh stack` est installée, et sinon en donne la commande d'installation sous **Left to you**, sans s'arrêter : le reste du plugin s'en passe.
-
-Un projet déclare dans `docs/agents/run.md` les zones réservées au dépôt principal, celui d'où partent les worktrees et où sont ouverts l'éditeur et les outils du projet, comme la partie Unity d'un projet de jeu (voir [l'ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md)). La mise en place écrit ce fichier quand il manque, avec la ligne `Run` du bloc qui y renvoie, et y propose les zones d'après le type de projet détecté : `Assets/**`, `ProjectSettings/**` et `Packages/**` pour un projet Unity, aucune si rien n'est détecté. Un fichier présent est celui de l'humain : elle le garde tel quel. Au lancement, l'enchaînement classe chaque ticket d'après les modules que la spec de changement lui attribue ; un ticket qui touche une zone réservée s'exécute dans le dépôt principal, un seul à la fois, et un implémenteur en worktree qui découvre qu'il doit y toucher rend la main avant, et son ticket reprend dans le dépôt principal avec sa branche, sans être arrêté. Si le dépôt principal a des modifications au lancement, l'agent les montre et demande s'il faut les jeter, les mettre de côté, ou les garder sans prendre aucun ticket réservé ; en cours d'enchaînement, il ne touche jamais un dépôt principal modifié, et ses tickets ne sont pas pris. À la fin, le dépôt principal revient sur sa branche de départ.
-
-`/finalize-stack` finalise une pile de PR approuvée, et l'humain seul la lance. Elle refuse de démarrer si une couche n'est pas approuvée, et dit laquelle : une couche draft, comme celle que laisse au sommet un ticket arrêté, l'arrête aussi, et c'est à l'humain de la retirer de la pile ou de l'approuver. Un script, `skills/finalize-stack/scripts/finalize-stack.sh`, en fait la partie mécanique, celle qui force-pousse : il fond les corrections et rebase la pile sur le tronc courant sans changer le diff d'aucune couche, pousse toutes les couches ou aucune, et nomme la couche en cause quand il abandonne. Il ne touche ni l'arbre de travail ni les branches locales ; son en-tête dit comment il procède et ce qu'il rend. La skill renomme ensuite la PR du sommet d'une pile de plusieurs couches avec un titre qui résume la pile, puis un second script, `skills/finalize-stack/scripts/closing-links.sh`, vérifie que chaque couche est liée à son ticket, réédite celles qui ne le sont pas, et fait fermer la spec de changement par la PR du sommet quand la pile en couvre tous les tickets. Elle s'arrête là, en donnant la commande de fusion : c'est l'humain qui fusionne, par `gh stack merge <PR du sommet> --merge`.
-
-Le plugin ne porte pas de version : Claude Code prend le SHA du commit, et chaque fusion sur `main` en devient une.
-
-## Développer le plugin
-
-Les sessions ordinaires de ce dépôt utilisent le plugin de `main`, que déclare `.claude/settings.json`. Pour essayer une skill sans la publier, lancer Claude Code sur le worktree où elle se développe :
-
-```
-claude --plugin-dir <chemin du worktree>
-```
-
-Pour cette session, la copie du worktree remplace le plugin installé, et le plugin de Matt reste chargé depuis son installation. Après une modification d'une skill ou du manifeste, `/reload-plugins` la prend en compte sans relancer la session.
-
-Une skill se déclare dans `.claude-plugin/plugin.json`, sous `skills`, une ligne par skill (`"./skills/<nom>"`). Les dépendances du plugin, elles, sont déclarées dans l'entrée de `.claude-plugin/marketplace.json` : déclarées dans `plugin.json`, elles empêcheraient `--plugin-dir` de charger le plugin seul.
-
-## Validation
-
-La CI lance `claude plugin validate .` sur chaque pull request. Elle échoue sur une erreur du manifeste, de la marketplace ou du frontmatter d'une skill, et sur tout avertissement autre que l'absence de `version` et le `CLAUDE.md` à la racine (filtre : `.github/untolerated-warnings.jq`). Pour vérifier en local :
-
-```
-claude plugin validate .
-claude plugin validate . --json | jq -f .github/untolerated-warnings.jq
-```
-
-La seconde commande doit afficher `[]`.
-
-Le script de finalisation a ses propres tests, ordinaires, sans modèle ni GitHub, écrits pour [bats](https://bats-core.readthedocs.io/) : chacun monte un dépôt git local et son remote nu dans son dossier temporaire, isolé de la configuration git du poste. Le `package.json` de la racine fixe la version de bats ; il ne sert qu'au développement. Les tests demandent Node, et, comme le script, `bash` et `git` 2.41 ou plus récent (Git Bash sous Windows) ; la CI ne les lance pas :
-
-```
-npm install
-npm test
-```
+- [Le glossaire](GLOSSARY.md), les termes du plugin.
+- [Les ADR](docs/adr/), le pourquoi du flux.
+- [Contribuer](CONTRIBUTING.md) : développer le plugin, le valider, lancer ses tests.
