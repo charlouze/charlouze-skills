@@ -220,6 +220,25 @@ Add c, corrected" "$(remote_subjects main layer-a)" "commits of the layer"
   assert_eq "c2" "$(remote_file layer-a c.txt)" "amend folded"
 }
 
+@test "a commit that its corrections empty is dropped" {
+  git switch --quiet -c layer-a
+  commit a.txt "a1" "Add a"
+  commit b.txt "b1" "Add b"
+  commit c.txt "c1" "Add c"
+  publish
+  # La revue rejette b : sa correction le défait, et b disparaît.
+  git rm --quiet b.txt
+  git commit --quiet -m "fixup! Add b"
+  publish
+
+  finalize main layer-a
+
+  assert_eq 0 "$status" "exit code"
+  assert_eq "pushed" "$(last_line)" "last line"
+  assert_eq "Add a
+Add c" "$(remote_subjects main layer-a)" "commits of the layer"
+}
+
 @test "a correction aimed at another layer aborts" {
   layer layer-a a.txt "a1" "Add a"
   layer layer-b b.txt "b1" "Add b"

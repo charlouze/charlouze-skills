@@ -22,10 +22,11 @@
 # résolutions de conflit que portent les merges de la pile (un merge du tronc
 # dans la couche du bas, par exemple) sont rejouées par rerere ; elles restent
 # dans le cache rerere du dépôt (`.git/rr-cache`), où une résolution plus
-# ancienne peut aussi servir : la comparaison des diffs en reste juge. Rien n'est
-# poussé avant que toutes les couches soient vérifiées, puis tout l'est d'un
-# coup (`--atomic`), chaque branche sous condition de n'avoir pas bougé depuis
-# la lecture (`--force-with-lease`).
+# ancienne peut aussi servir : la comparaison des diffs en reste juge. Un commit
+# que ses corrections vident disparaît. Rien n'est poussé avant que toutes les
+# couches soient vérifiées, puis tout l'est d'un coup (`--atomic`), chaque
+# branche sous condition de n'avoir pas bougé depuis la lecture
+# (`--force-with-lease`).
 #
 # Le script n'a pas d'identité à lui : ses `git` et `gh` agissent sous celle de
 # l'environnement qui le lance. Lancé par un wrapper d'identité, ils prennent
@@ -124,11 +125,26 @@ rebase_layer() { # couche base-avant base-après tête
       in_worktree rebase --abort >/dev/null 2>&1 || true
       abort "$1" "rebase conflict ($unmerged)"
     fi
+    # Un arrêt sans conflit est celui d'une correction qui vide son commit :
+    # la poursuite le garde vide, drop_emptied le retire ensuite.
     out=$(in_worktree rebase --continue 2>&1) && return 0
     steps=$((steps - 1))
   done
   in_worktree rebase --abort >/dev/null 2>&1 || true
   abort "$1" "rebase failed: $(head -n 1 <<<"$out")"
+}
+
+# Retire de la couche réécrite les commits vides : ceux que leurs corrections
+# ont vidés. Le rebase ne fait que retirer ces commits, sans conflit possible.
+drop_emptied() { # couche base
+  local commit
+  for commit in $(git rev-list "$2..$(in_worktree rev-parse HEAD)"); do
+    if [ "$(git rev-parse "$commit^{tree}")" = "$(git rev-parse "$commit~1^{tree}")" ]; then
+      in_worktree rebase --quiet --no-keep-empty --force-rebase "$2" >/dev/null 2>&1 \
+        || abort "$1" "emptied commits not dropped"
+      return 0
+    fi
+  done
 }
 
 # Lecture de la pile sur le remote.
@@ -163,6 +179,7 @@ for i in "${!layers[@]}"; do
   before=$(layer_diff_id "$old_base" "$old_head") || abort "$layer" "unreadable diff"
   learn_resolutions "$old_base" "$old_head"
   rebase_layer "$layer" "$old_base" "$new_base" "$old_head"
+  drop_emptied "$layer" "$new_base"
   new_head=$(in_worktree rev-parse HEAD)
   new_heads+=("$new_head")
 
