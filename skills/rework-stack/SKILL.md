@@ -56,20 +56,22 @@ Check that every element of `pending` appears in the plan exactly once, and that
 
 Then classify each target layer: it is **reserved** when a path of its diff against its base (`git diff --name-only origin/<base>...origin/<head>`), or a path its tasks name, matches a reserved glob.
 
-Done when every element has its line and every target layer its class.
+Then find the **adoption layers**. A layer is one when open drift issues cite it, and by these issues alone: issues that follow the *Drift* section of `docs/agents/triage-labels.md`. For each target layer, search `gh issue list --state open --search '"<PR URL>" in:body' --limit 200 --json number,title,url,body`, and keep the issues whose body links that PR and names the functional spec section it targets; an "Audit <part>" issue targets no section and is not one. Note each adoption layer's drift issues: number, link, title and targeted section.
+
+Done when every element has its line, every target layer its class, and every adoption layer its drift issues.
 
 ### 4. Work the layers
 
 Track each layer's state from here to the end: **pushed** (with its new head), **failed** (with its reason), **not taken** (with its reason), or **unchanged**.
 
-For each layer with tasks, all at once, launch one fresh subagent with [layer-work.md](layer-work.md) as its brief, and give it: the layer (PR number and URL, head and base branches, whether it is approved), its lines of the plan, the path of `pending`'s output, the reserved globs, whether you have a GitHub identity of your own, and its working place:
+For each layer with tasks, all at once, launch one fresh subagent with [layer-work.md](layer-work.md) as its brief, and give it: the layer (PR number and URL, head and base branches, whether it is approved), its lines of the plan, the path of `pending`'s output, the reserved globs, whether you have a GitHub identity of your own, for an adoption layer its drift issues, and its working place:
 
 - **A layer that is not reserved**: a worktree of its own, outside the main repository's working tree, on a local branch `rework/<head>` made from `origin/<head>`, the layer as it is pushed.
 - **A reserved layer**: the main repository, on the same `rework/<head>` branch, one reserved layer at a time, and only while the main repository has no changes. When the human chose to keep its changes, or it has changes by then, the layer is **not taken**.
 
 A subagent that hands back because it must touch a reserved zone has committed its work: remove its worktree, and resume the layer in the main repository on the same branch, as a reserved layer.
 
-Each subagent reports, for each task, its response, its commit if any and the text of its answer; the back-references; the points of attention, decisions to settle and manual checks of its added commits; or its failure and the reason. Keep each subagent at hand: step 5 may resume it, with its context.
+Each subagent reports, for each task, its response, its commit if any and the text of its answer; the back-references; the points of attention, decisions to settle and manual checks of its added commits; for an adoption layer, the drift effects of its tasks; or its failure and the reason. Keep each subagent at hand: step 5 may resume it, with its context.
 
 Done when every layer with tasks has its subagent's report, or is not taken.
 
@@ -95,10 +97,11 @@ Done when every layer is pushed, failed, not taken or unchanged.
    - a task of a failed layer: "failed, nothing pushed", with the reason and the local branch `rework/<head>`;
    - a task of a layer not taken: "not reworked", with the reason.
 3. For each task of a pushed layer whose element sits on another layer, post on the target layer `comment <PR> <back-reference>`: the back-reference its subagent wrote, linking the element and the commit.
-4. For each pushed layer, post its **points of attention**: with your own GitHub identity, as one review with the `COMMENT` event at its new head, one comment per point on its line, each opening with the mark and its rank (`🤖 1/4`), most important first; without one, as a section of its PR body, titled in the documents language and naming this rework, in rank order, each point with a permalink to its line at the new head. Add its **decisions to settle** and its **manual checks** to the body's sections that hold them (create them when missing, titled in the documents language), marked as coming from this rework. Keep the rest of the body as it is.
-5. For each pushed layer, with your own GitHub identity, request the review again (`gh pr edit <n> --add-reviewer <logins>`) from the authors of the elements its tasks answered and from its past `reviewers`, less the agent and the PR's author. Without one, request nothing: GitHub refuses to request a review from the PR's author, who is then the human.
+4. For each pushed adoption layer, apply the **drift effects** its subagent reported, through `gh`: edit each issue to update with its new body (`gh issue edit <n> --body-file`), close each issue with no drift left with a comment giving the reason and the commit (`gh issue close <n> --comment`), and create each new drift issue with its title, body and labels (`gh issue create`). Then update the section of its PR body that lists its drift issues, creating it when missing, titled in the documents language, so that it lists exactly its drift issues, by kind: the new ones join it, and each closed one stays, struck through and marked closed, its closing comment giving the reason. Keep the section's other text as it is, such as its reminder that closing the PR unmerged means closing the issues it lists, and the rest of the body too.
+5. For each pushed layer, post its **points of attention**: with your own GitHub identity, as one review with the `COMMENT` event at its new head, one comment per point on its line, each opening with the mark and its rank (`🤖 1/4`), most important first; without one, as a section of its PR body, titled in the documents language and naming this rework, in rank order, each point with a permalink to its line at the new head. Add its **decisions to settle** and its **manual checks** to the body's sections that hold them (create them when missing, titled in the documents language), marked as coming from this rework. Keep the rest of the body as it is.
+6. For each pushed layer, with your own GitHub identity, request the review again (`gh pr edit <n> --add-reviewer <logins>`) from the authors of the elements its tasks answered and from its past `reviewers`, less the agent and the PR's author. Without one, request nothing: GitHub refuses to request a review from the PR's author, who is then the human.
 
-Done when every element of the plan has its answer's link, every back-reference its link, and every pushed layer its points of attention, body additions and review request.
+Done when every element of the plan has its answer's link, every back-reference its link, every drift effect of a pushed adoption layer its issue's link, and every pushed layer its points of attention, body additions and review request.
 
 ### 7. Restore the main repository
 
@@ -113,6 +116,7 @@ End on this recap, in your final message only, with no report comment on GitHub:
 - each pushed layer, with its PR;
 - the elements by response (correction, new change, answer only, disagreement, question), with their links;
 - the questions and disagreements now waiting for the human, with their links;
+- for each pushed adoption layer, its drift issues updated, closed and opened, counted, with their links; the drift effects not applied, a failed `gh` call's or those of a layer not pushed, with their layer;
 - the layers that lost their approval;
 - the layers checked locally, and those whose check failed;
 - each failed layer, with its reason and its local branch; each layer not taken, with its reason;
