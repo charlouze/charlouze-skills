@@ -47,8 +47,10 @@ Forme arrondie : une étape de l'humain ; rectangle : une commande que l'humain 
 ```
 claude plugin marketplace add anthropics/claude-plugins-official
 claude plugin marketplace add charlouze/charlouze-skills
-claude plugin install charlouze-skills@charlouze-skills
+claude plugin install charlouze-skills@charlouze-skills --scope project
 ```
+
+Lancez-les dans un terminal à la racine du dépôt : `--scope project` inscrit le plugin dans les réglages du projet, et chaque collaborateur lance l'installation une fois.
 
 La première commande ne sert que si Claude Code ne connaît pas encore la marketplace de `mattpocock-skills`, dont le plugin dépend.
 
