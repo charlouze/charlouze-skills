@@ -15,19 +15,26 @@ Run `git`, `gh` and the scripts as your instructions say, through the identity w
 
 ### 1. Read the stack
 
-Start from the PR the human names, else the PR of the current branch. Walk down through each PR's base branch to the trunk, the base of the bottom layer, then up through the open PRs based on each head branch (`gh pr list --base <branch> --state open`). For each layer, read `gh pr view <n> --json number,title,body,isDraft,baseRefName,headRefName,reviewDecision,latestReviews,closingIssuesReferences`.
+Read the stack from the PR the human names, else the PR of the current branch:
 
-Two open PRs on one base mean the stack forks: stop and ask the human which one belongs to it.
+```
+bash <this skill's directory>/../../scripts/stack.sh <PR>
+```
 
-Done when you hold every layer, bottom to top, and the trunk.
+This script, shared with the rework and kept at the plugin's root, alone reads the stack on GitHub: its shape and each layer's approval. Its header gives its output and codes. It asks for bash 4.4 or newer and jq.
+
+- **Code 3**, the stack forks: two open PRs on one base. Name the two PRs, ask the human to close or retarget the one that does not belong to the stack, and stop: the script reads only a stack that does not fork.
+- **Any other failure**: give the human its error as it is, and stop.
+
+Done when you hold the trunk and every layer, bottom to top, with its title, head and base branches, `draft` and `approval`.
 
 ### 2. Check the approvals
 
-Every layer is approved: its `reviewDecision` is `APPROVED`, or, when the repo requires no review and `reviewDecision` is empty, its `latestReviews` hold an approval and no change request. A draft layer, such as the one a stopped ticket leaves on top, fails: the human either removes it from the stack, or has it finished and approves it.
+A layer passes when its `approval` is `approved` and it is not a `draft`. A draft layer, such as the one a stopped ticket leaves on top, fails whatever its approval: the human either removes it from the stack, or has it finished and approves it.
 
-When a layer fails, stop before anything else, and name each one that fails: PR number, branch, and what it lacks.
+When a layer fails, stop before anything else, and name each one that fails: PR number, branch, and what it lacks: it is a draft, changes are requested, or it has no approval.
 
-Done when every layer is approved. The **top** is the highest layer.
+Done when every layer passes. The **top** is the highest layer.
 
 ### 3. Run the script
 
@@ -63,7 +70,7 @@ Done when the script says `linked`.
 
 ### 5. Retitle the top
 
-When the finalized stack has two layers or more, retitle the top PR with a title that sums up the whole stack, in the style of the repo's commit subjects: merged as a merge commit titled by the top PR, the stack becomes one line of the trunk's `--first-parent` history. A single PR keeps its title. The title is the only trace: the stack gets no closing PR, nor any empty commit.
+When the finalized stack has two layers or more, retitle the top PR (`gh pr edit <top PR> --title`) with a title that sums up the whole stack, drawn from the layers' titles that step 1 gave, in the style of the repo's commit subjects: merged as a merge commit titled by the top PR, the stack becomes one line of the trunk's `--first-parent` history. A single PR keeps its title. The title is the only trace: the stack gets no closing PR, nor any empty commit.
 
 Done when the top PR bears its title.
 
@@ -71,7 +78,7 @@ Done when the top PR bears its title.
 
 Report to the human:
 
-- each finalized layer: PR, ticket, number of commits, and the script's verdict;
+- each finalized layer: PR, the ticket that `closing-links.sh` gave for it, number of commits, and the script's verdict;
 - the top's new title, the PRs whose body you edited, and whether the change spec closes with the stack or which tickets it waits for;
 - the local branches of the stack still point at their old commits: `git fetch`, then reset or delete them;
 - the merge command, for the human to run: `gh stack merge <top PR> --merge`.
