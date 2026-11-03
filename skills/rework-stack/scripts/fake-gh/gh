@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+# Un `gh` simulé pour les tests de rework-stack.sh : il répond, à partir d'un
+# monde JSON préparé par le test, aux seules commandes que le script lance, et
+# garde ce qu'on lui poste. Ni GitHub ni réseau.
+#
+#   FAKE_GH_WORLD      le monde : { "prs": [ … ] }, que les réponses modifient
+#   FAKE_GH_LOG        une ligne JSON par réponse postée
+#   FAKE_GH_USER       l'auteur des réponses postées (défaut : human)
+#   FAKE_GH_PAGE_SIZE  la taille d'une page (défaut : 100)
+#   FAKE_GH_FAIL       fait échouer toute commande dont les arguments le contiennent,
+#   FAKE_GH_FAIL_CODE  avec ce code (défaut : 1)
+#
+# Il reconnaît chaque requête par le nom d'opération que lui donne le script
+# (`LayerThreads`, `CommentOnPr`…) : renommer l'une d'elles demande de le suivre ici.
+#
+# Comme le vrai `gh`, `api graphql --paginate` ne suit les pages que si la
+# requête déclare `$endCursor` et demande `pageInfo`, et rend alors un document
+# JSON par page, à la suite.
+
+set -euo pipefail
+
+world=${FAKE_GH_WORLD:?}
+log=${FAKE_GH_LOG:?}
+user=${FAKE_GH_USER:-human}
+size=${FAKE_GH_PAGE_SIZE:-100}
+
+# jq natif sous Windows écrit ses fins de ligne en CRLF.
+j() { jq "$@" | tr -d '\r'; }
+
+fail() {
+  echo "gh: $*" >&2
+  exit 1
+}
+
+if [ -n "${FAKE_GH_FAIL:-}" ] && [[ "$*" == *"$FAKE_GH_FAIL"* ]]; then
+  echo "gh: simulated failure" >&2
+  exit "${FAKE_GH_FAIL_CODE:-1}"
+fi
+
+update_world() { # filtre jq, arguments jq…
+  local filter=$1 next
+  shift
+  next=$(j "$@" "$filter" "$world")
+  printf '%s\n' "$next" >"$world"
+}
+
+pr_view() { # numéro --json champs
+  local out
+  [ "$2" = "--json" ] || fail "pr view: unexpected arguments: $*"
+  out=$(j -c --argjson n "$1" --arg fields "$3" \
+    '.prs[] | select(.number == $n) | with_entries(select(.key as $k | $fields | split(",") | index($k)))' "$world")
+  [ -n "$out" ] || fail "no pull requests found for #$1"
+  echo "$out"
+}
+
+pr_list() { # --base|--head branche --state open --json number
+  local key
+  case $1 in
+    --base) key=baseRefName ;;
+    --head) key=headRefName ;;
+    *) fail "pr list: unexpected arguments: $*" ;;
+  esac
+  [ "$3 $4 $5 $6" = "--state open --json number" ] || fail "pr list: unexpected arguments: $*"
+  j -c --arg key "$key" --arg branch "$2" \
+    '[.prs[] | select(.state == "OPEN" and .[$key] == $branch) | {number}]' "$world"
+}
+
+# Les éléments que paginent les requêtes, sous leur forme GraphQL.
+items() { # opération
+  case $1 in
+    LayerThreads)
+      j -c --argjson n "${vars[number]}" --argjson size "$size" '.prs[] | select(.number == $n) | [.threads[] | {
+        id, isResolved, path, line, originalLine,
+        comments: {totalCount: (.comments | length), nodes: .comments[:$size]}
+      }]' "$world"
+      ;;
+    LayerReviews) j -c --argjson n "${vars[number]}" '.prs[] | select(.number == $n) | .reviews' "$world" ;;
+    LayerComments) j -c --argjson n "${vars[number]}" '.prs[] | select(.number == $n) | .comments' "$world" ;;
+    ThreadComments) j -c --arg id "${vars[id]}" '.prs[].threads[] | select(.id == $id) | .comments' "$world" ;;
+  esac
+}
+
+wrap() { # opération, page sur l'entrée
+  case $1 in
+    LayerThreads) j -c '{data: {repository: {pullRequest: {reviewThreads: .}}}}' ;;
+    LayerReviews) j -c '{data: {repository: {pullRequest: {reviews: .}}}}' ;;
+    LayerComments) j -c '{data: {repository: {pullRequest: {comments: .}}}}' ;;
+    ThreadComments) j -c '{data: {node: {comments: .}}}' ;;
+  esac
+}
+
+paged() { # opération
+  local all from more
+  all=$(items "$1")
+  [ -n "$all" ] || fail "Could not resolve to a node"
+  from=${vars[endCursor]:-0}
+  while :; do
+    j -c --argjson from "$from" --argjson size "$size" '{
+      pageInfo: {hasNextPage: (($from + $size) < length), endCursor: (($from + $size) | tostring)},
+      nodes: .[$from:($from + $size)]
+    }' <<<"$all" | wrap "$1"
+    more=$(j --argjson from "$from" --argjson size "$size" '($from + $size) < length' <<<"$all")
+    if [ "$paginate" != yes ] || [ "$more" != true ]; then
+      break
+    fi
+    from=$((from + size))
+  done
+}
+
+element() {
+  local out
+  out=$(j -c --arg id "${vars[id]}" '[.prs[] | . as $pr | (
+      (.threads[] | select(.id == $id) | {__typename: "PullRequestReviewThread"}),
+      (.reviews[] | select(.id == $id) | {__typename: "PullRequestReview", body, url, pullRequest: {id: $pr.id}}),
+      (.comments[] | select(.id == $id) | {__typename: "IssueComment", body, url, pullRequest: {id: $pr.id}}),
+      (select(.id == $id) | {__typename: "PullRequest"})
+    )] | first // empty' "$world")
+  [ -n "$out" ] || fail "Could not resolve to a node with the global id of '${vars[id]}'"
+  j -c '{data: {node: .}}' <<<"$out"
+}
+
+# Une réponse postée : ajoutée au monde, après tout ce qui y est déjà, et gardée.
+post() { # opération
+  local n stamp url
+  n=$(($(wc -l <"$log") + 1))
+  stamp=$(printf '2099-01-01T00:00:%02dZ' "$n")
+  url="https://github.com/o/r/posted/$n"
+  case $1 in
+    ReplyInThread)
+      j -e --arg id "${vars[thread]}" 'any(.prs[].threads[]; .id == $id)' "$world" >/dev/null \
+        || fail "Could not resolve to a node with the global id of '${vars[thread]}'"
+      update_world '(.prs[].threads[] | select(.id == $id) | .comments) += [{author: {login: $user}, body: $body, url: $url, createdAt: $stamp}]' \
+        --arg id "${vars[thread]}" --arg user "$user" --arg body "${vars[body]}" --arg url "$url" --arg stamp "$stamp"
+      j -nc --arg id "${vars[thread]}" --arg body "${vars[body]}" '{on: "thread", id: $id, body: $body}' >>"$log"
+      j -nc --arg url "$url" '{data: {addPullRequestReviewThreadReply: {comment: {url: $url}}}}'
+      ;;
+    CommentOnPr)
+      j -e --arg id "${vars[subject]}" 'any(.prs[]; .id == $id)' "$world" >/dev/null \
+        || fail "Could not resolve to a node with the global id of '${vars[subject]}'"
+      update_world '(.prs[] | select(.id == $id) | .comments) += [{id: ("IC_posted_" + $n), author: {login: $user}, body: $body, url: $url, createdAt: $stamp}]' \
+        --arg id "${vars[subject]}" --arg n "$n" --arg user "$user" --arg body "${vars[body]}" --arg url "$url" --arg stamp "$stamp"
+      j -nc --arg id "${vars[subject]}" --arg body "${vars[body]}" '{on: "pr", id: $id, body: $body}' >>"$log"
+      j -nc --arg url "$url" '{data: {addComment: {commentEdge: {node: {url: $url}}}}}'
+      ;;
+  esac
+}
+
+api_graphql() {
+  local query="" operation
+  declare -gA vars=()
+  paginate=no
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --paginate) paginate=yes ;;
+      -f | -F)
+        if [ "${2%%=*}" = query ]; then
+          query=${2#query=}
+        else
+          vars[${2%%=*}]=${2#*=}
+        fi
+        shift
+        ;;
+      *) fail "api graphql: unexpected argument: $1" ;;
+    esac
+    shift
+  done
+  if [[ "$query" != *'$endCursor'* || "$query" != *pageInfo* ]]; then
+    paginate=no
+  fi
+  operation=$(grep -oE '(query|mutation) [A-Za-z]+' <<<"$query" | head -n 1 | cut -d' ' -f2)
+  case $operation in
+    LayerThreads | LayerReviews | LayerComments | ThreadComments) paged "$operation" ;;
+    Element) element ;;
+    ReplyInThread | CommentOnPr) post "$operation" ;;
+    *) fail "api graphql: unknown operation: ${operation:-none}" ;;
+  esac
+}
+
+case "${1:-} ${2:-}" in
+  "pr view") shift 2 && pr_view "$@" ;;
+  "pr list") shift 2 && pr_list "$@" ;;
+  "api graphql") shift 2 && api_graphql "$@" ;;
+  *) fail "unexpected command: $*" ;;
+esac

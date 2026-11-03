@@ -12,7 +12,7 @@ Une skill de Matt est complétée par des consignes que pointe le `CLAUDE.md` du
   - `domain-modeling` par `docs/agents/domain.md` ;
   - `triage` par `docs/agents/triage-labels.md` ;
   - `pr` par ce que la consigne d'empilement demande au corps de chaque PR.
-- **Ajoutées** : `grid-review` (les trois points d'accroche), `finalize-stack` et `writing-functional-specs`. Aucune ne reprend un nom court de Matt : entre deux plugins, ce nom va au premier activé.
+- **Ajoutées** : `grid-review` (les trois points d'accroche), `finalize-stack`, `rework-stack` et `writing-functional-specs`. Aucune ne reprend un nom court de Matt : entre deux plugins, ce nom va au premier activé.
 - Le ticket reste celui de Matt. La conception vit dans la spec de changement, que `/implement-spec` donne à chaque implémenteur. Un ticket plus riche obligerait à remplacer `/to-tickets`.
 - Une consigne qui contredit une skill de Matt se vérifie par un spike, à refaire quand Matt fait évoluer la skill : une nouvelle version peut la défaire sans prévenir (ADR 0006).
 - Les fichiers de `docs/agents/` que le plugin lit portent des noms anglais fixes : `grids.md`, `run.md`, `git-history.md`, `change-spec.md`.
