@@ -58,7 +58,7 @@ Le plugin n'a pas de version : chaque fusion sur `main` en fait une.
 | Skill | Ce qu'elle fait, ou ce que le plugin y change | Lancée par | Détail |
 |---|---|---|---|
 | `setup-charlouze-skills` | Prépare le dépôt : ses consignes, ses déclarations et ses réglages GitHub. | l'humain | [skill](skills/setup-charlouze-skills/SKILL.md) |
-| `grid-review` | Juge par les grilles du projet un brouillon de spec de changement ou un diff, aux trois points d'accroche. | `/to-spec`, `code-review` | [skill](skills/grid-review/SKILL.md), [ADR 0001](docs/adr/0001-grilles-axe-de-revue-separe.md) |
+| `grid-review` | Juge par les grilles du projet un brouillon de spec de changement ou un diff, aux trois points d'accroche, et un brouillon d'adoption au point spec. | `/to-spec`, `code-review` | [skill](skills/grid-review/SKILL.md), [ADR 0001](docs/adr/0001-grilles-axe-de-revue-separe.md) |
 | `writing-functional-specs` | Donne la forme et les invariants d'une spec fonctionnelle. | `/to-spec` | [skill](skills/writing-functional-specs/SKILL.md) |
 | `rework-stack` | Reprend les commentaires de revue d'une pile : répond à chacun et corrige les couches sans réécrire l'historique. | l'humain | [skill](skills/rework-stack/SKILL.md) |
 | `finalize-stack` | Finalise une pile approuvée, avant que l'humain la fusionne. | l'humain | [skill](skills/finalize-stack/SKILL.md) |

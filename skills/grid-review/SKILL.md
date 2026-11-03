@@ -1,7 +1,7 @@
 ---
 name: grid-review
-description: Judge by the grids the project declares (evaluation skills such as clean-code or domain-driven-design) a draft change spec, whole at the spec hook point and by its Implementation Decisions at the design one, or a diff since a fixed point, where it is the Grids axis beside code-review's Standards and Spec. Use with every code-review, or when asked to judge a draft or changes by the project's grids.
-argument-hint: "[hook point: spec | design | review] <draft change spec, fixed point, or the diff>"
+description: Judge by the grids the project declares (evaluation skills such as clean-code or domain-driven-design) a draft change spec, whole at the spec hook point and by its Implementation Decisions at the design one, an adoption draft, whole at the spec hook point only, or a diff since a fixed point, where it is the Grids axis beside code-review's Standards and Spec. Use with every code-review, or when asked to judge a draft or changes by the project's grids.
+argument-hint: "[hook point: spec | design | review] <draft change spec, adoption draft, fixed point, or the diff>"
 ---
 
 # Grid review
@@ -10,11 +10,13 @@ A **grid** is an evaluation skill a project declares at one or more **hook point
 
 It takes the hook point and the **object** judged there:
 
-- **spec**: a draft change spec, judged whole;
+- **spec**: a draft change spec, or an **adoption draft**, judged whole;
 - **design**: a draft change spec, judged on its `Implementation Decisions`, where its design lives; the rest of the draft is context;
 - **review**: a diff since a fixed point.
 
-When the caller names no hook point, a diff is judged at review, and a draft at spec, then at design, each with its own report.
+An **adoption draft** is what adopting one or more contexts writes before its pull request: each adopted context's functional spec, its glossary, and its lines of the context map, judged together as one object. A **draft** is either kind: a draft change spec or an adoption draft. An adoption draft is judged at spec only: it has no `Implementation Decisions` for design, and review's grids judge code. When the caller names design or review for an adoption draft, say so and judge nothing.
+
+When the caller names no hook point, a diff is judged at review, an adoption draft at spec, and a draft change spec at spec, then at design, each with its own report.
 
 ## The declaration
 
@@ -33,7 +35,8 @@ A Condition or Focus item holds at every hook point, or only at the one its `At 
 
 ### 1. Pin the object
 
-- **A draft**, at spec or design: take the file the caller names, or the text it hands over. The code the draft touches is the code it names: files, paths and modules.
+- **A draft change spec**, at spec or design: take the file the caller names, or the text it hands over. The code the draft touches is the code it names: files, paths and modules.
+- **An adoption draft**, at spec: take the files the caller names, or the text it hands over. Of the context map, judge the adopted contexts' lines; the rest of the map is context. The code the draft touches is the code of the contexts it adopts: the paths and modules the caller or the draft names.
 - **A diff**, at review: take the fixed point (commit, branch, tag or merge-base) the caller names, and the diff `git diff <fixed-point>...HEAD` with its changed files (`--name-only`). When the caller already holds the diff, such as the diff command `code-review` captured or a patch file, take it as given. With neither, ask for the fixed point. The code the diff touches is its changed files.
 
 Done when you hold the object and the code it touches.
@@ -43,7 +46,7 @@ Done when you hold the object and the code it touches.
 Read the declaration and keep each grid whose hook points include this one. Sort every grid kept into the first of these that fits:
 
 - **Out of zone**: no code the object touches falls in its zone. A draft that names no code falls in every zone.
-- **Condition unmet**: one of its conditions that hold at this hook point is not met by the object.
+- **Condition unmet**: one of its conditions that hold at this hook point is not met by the object. An adoption draft counts as creating each context it adopts, and as touching its glossary and the context map: hold each condition against that.
 - **Missing**: its skill is absent from your available skills, under its short name and under any `<plugin>:` prefix.
 - **Active**: otherwise. Note its skill name as listed, and the code the object touches in its zone.
 
@@ -53,7 +56,10 @@ Done when every grid kept has its sort.
 
 Launch one subagent per active grid, every call in one message so that they run in parallel. Each prompt holds:
 
-- the object: the diff's command or patch file, and the changed files in the grid's zone, the only ones to judge; or the draft's path, or its text, with at design "Judge its `Implementation Decisions` only: the rest of the draft is context.";
+- the object:
+  - a diff: its command or patch file, and the changed files in the grid's zone, the only ones to judge;
+  - a draft change spec: its path, or its text, with at design "Judge its `Implementation Decisions` only: the rest of the draft is context.";
+  - an adoption draft: its files' paths, or its text, with "Judge these files together, as one draft: each adopted context's functional spec, its glossary, and its lines of the context map, the rest of the map being context.";
 - "Invoke the Skill tool with `<skill as listed>`, then judge this <object> by its diagnostic.";
 - the grid's lines excluded at this hook point, by number: "Leave lines <numbers> out: judge, mention and score the other lines only.";
 - the grid's focus items that hold at this hook point, word for word;
