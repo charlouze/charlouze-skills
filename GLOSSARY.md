@@ -64,6 +64,14 @@ _Avoid_ : chaîne, série
 **Couche** (*Layer*) :
 Une PR d'une pile.
 
+**Tronc** (*Trunk*) :
+La branche où se pose la couche du bas d'une pile, et où la pile est fusionnée.
+_Avoid_ : base (la branche sous une couche, quelle qu'elle soit), main
+
+**Approbation** (*Approval*) :
+Le verdict que porte une couche seule, d'après la dernière revue de chacun de ses relecteurs : approuvée, changements demandés, ou aucun. Les drafts sous elle n'y changent rien.
+_Avoid_ : validation, accord
+
 **Finalisation** (*Finalization*) :
 La passe qui, une fois toute la pile approuvée, fond chaque correction dans le commit qu'elle vise, sans changer le diff d'aucune couche.
 _Avoid_ : nettoyage, squash
@@ -84,9 +92,9 @@ _Avoid_ : remarque, note de revue
 La passe où l'agent traite les commentaires de revue d'une pile, couche par couche.
 _Avoid_ : correction (c'est un `fixup!`), retours
 
-**Fil en attente** (*Pending thread*) :
-Un fil de revue non résolu, sur une couche ni approuvée ni draft, dont le dernier message ne vient pas de l'agent. Seul l'humain le résout.
-_Avoid_ : commentaire non traité, retour ouvert
+**Élément en attente** (*Pending item*) :
+Ce que la reprise doit traiter : un fil de revue non résolu, un corps de revue ou un commentaire de PR, posé par un autre que l'agent sur une couche ni approuvée, ni draft, ni au-dessus d'une draft, et auquel l'agent n'a pas encore répondu. Seul l'humain résout un fil.
+_Avoid_ : fil en attente (un fil n'en est qu'un genre), commentaire non traité, retour ouvert
 
 **Adoption** (*Adoption*) :
 La passe qui décrit dans sa spec fonctionnelle tout ce que fait déjà un contexte, depuis ses documents ou l'humain.
