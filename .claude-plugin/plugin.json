@@ -1,7 +1,7 @@
 {
   "name": "charlouze-skills",
-  "description": "Engineering skills layered on top of mattpocock-skills, for product and game projects: functional specs per context, drift rules, review by grids, stack rework and finalization, setup.",
+  "description": "Engineering skills layered on top of mattpocock-skills, for product and game projects: functional specs per context, adoption of existing contexts, drift rules, review by grids, stack rework and finalization, setup.",
   "author": { "name": "Charlouze" },
   "repository": "https://github.com/charlouze/charlouze-skills",
-  "skills": ["./skills/writing-functional-specs", "./skills/setup-charlouze-skills", "./skills/grid-review", "./skills/rework-stack", "./skills/finalize-stack"]
+  "skills": ["./skills/writing-functional-specs", "./skills/setup-charlouze-skills", "./skills/grid-review", "./skills/rework-stack", "./skills/finalize-stack", "./skills/adopt-context"]
 }

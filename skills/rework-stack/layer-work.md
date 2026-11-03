@@ -11,6 +11,7 @@ Read the project's git history policy, `docs/agents/git-history.md`, before your
 - The path of `rework-stack.sh pending`'s output, where each element's messages are found by its id.
 - The reserved globs: paths that only the main repository touches.
 - Whether the agent has a GitHub identity of its own.
+- For an **adoption layer**, a layer that open drift issues cite: those issues, each with its number, link, title and the spec section it targets.
 - Your working place: a worktree, or the main repository, on the local branch `rework/<head>`, made from `origin/<head>`.
 
 ## For each task, one response
@@ -27,9 +28,17 @@ A correction the layer already holds, pushed by an earlier rework that never ans
 
 A correction that changes a behaviour goes through `tdd`; any other change is covered by the project's tests.
 
+**Drift effects.** On an adoption layer, a task that changes a rule of the functional spec changes the drifts the spec defines: read the drift issues you were given (`gh issue view <n>`) and the code the rule describes, and work out the task's effects on them. Each is one of:
+
+- **update**: the issue that targets this rule's section still has a drift, but no longer the one it says; give its new body;
+- **close**: the issue has no drift left under the rule as it now stands; give the reason;
+- **open**: the rule as it now stands makes a new drift; give its title, body and labels, as the *Drift* section of `docs/agents/triage-labels.md` asks, its body also citing this layer's PR by its full URL, which the session's search looks for, and naming the spec section it targets, as the other drift issues do.
+
+You open, edit and close nothing: the session applies the effects once the layer is pushed.
+
 **Reserved zone.** In a worktree, when a task needs to touch a path that matches a reserved glob, commit your work and hand back before touching it, saying which path: the layer resumes in the main repository.
 
-Done when every task has its response, and its commit when it has one.
+Done when every task has its response, its commit when it has one, and, on an adoption layer, its drift effects when it changes a rule of the spec.
 
 ## Check the added commits
 
@@ -48,6 +57,7 @@ Done when the tests are green and every remark of both reviews is corrected or j
   - for a commit, its link within this layer's PR, `<PR URL>/commits/<sha>`, naming the PR when the element sits on another layer;
   - for a correction, that it is a `fixup!` or an `amend!`, folded into its commit at the finalization; for a new change, that it is an ordinary commit, kept in the history;
   - when this layer was approved and gets a commit, that it loses its approval.
+- **The drift effects**, on an adoption layer: for each task that changes a rule of the spec, its element's id and each effect, as **Drift effects** describes it, or "none".
 - **Each back-reference**: for each task whose element sits on another layer, a short text for this layer's PR that links the element and the commit.
 - **The points of attention** of your added commits. A point of attention is a place in the diff where the reviewer, reading it alone, could miss something or disagree: a non-obvious choice, a fragile spot, a departure from the change spec's design, an assumption made for want of information. A routine decision, or what the tests prove, is none. Give each its file and its line at your tip, ranked from the most to the least important, without a cap.
 - **The decisions to settle**: each decision you took without the human, which you submit to them, with its reason and what it costs if it is wrong. Approving the PR settles it. A decision that meets the criteria of an ADR (`domain-modeling`) comes with an ADR proposal. A decision that is neither a point of attention nor to settle goes in its commit message alone.
