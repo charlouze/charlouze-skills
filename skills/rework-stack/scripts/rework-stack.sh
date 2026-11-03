@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Le script de la reprise : il lit les éléments en attente d'une pile, et y
-# répond. Il est le seul à lire la pile et ses échanges sur GitHub, et le seul à
+# répond. Il est le seul à lire les échanges d'une pile sur GitHub, et le seul à
 # y poster ce qu'une reprise lit ensuite comme un message de l'agent (réponses et
 # renvois) : la marque de l'agent et la règle de ce qui est en attente ne vivent
-# qu'ici.
+# qu'ici. La pile elle-même, sa forme et l'approbation de ses couches, il la lit
+# par `scripts/stack.sh`, à la racine du plugin.
 #
 #   rework-stack.sh pending <PR>
 #   rework-stack.sh reply <element> <body>
@@ -15,17 +16,16 @@
 # ses réponses comme ses points d'attention ; ce que le script poste la porte
 # déjà.
 #
-# `pending` lit la pile depuis n'importe laquelle de ses PR : vers le bas par les
-# bases jusqu'au tronc, vers le haut par les PR ouvertes basées sur chaque tête.
-# Il lit tout, pagination comprise, et rend un document JSON :
+# `pending` lit la pile depuis n'importe laquelle de ses PR, comme `stack.sh`, puis
+# les échanges de ses couches. Il lit tout, pagination comprise, et rend un
+# document JSON :
 #   {"trunk": "<branche>", "layers": [<couche>, … du bas vers le haut]}
 # Une couche donne {number, head, base, reviewers}, ses relecteurs passés hors
 # l'auteur de la PR, puis soit `skipped`, la raison pour laquelle elle est
 # ignorée :
-#   approved     `reviewDecision` à APPROVED ou, quand il est vide, une
-#                approbation sans demande de changement dans `latestReviews`
 #   draft        une couche draft
 #   above draft  toute couche au-dessus d'une couche draft
+#   approved     une couche approuvée, selon la règle de `stack.sh`
 # soit `pending`, ses éléments en attente, chacun
 #   {kind, id, url, [path, line,] messages: [{author, body}, …]}
 # de l'un de ces genres :
@@ -94,9 +94,8 @@ pr_view() { # numéro champs
   gh pr view "$1" --json "$2"
 }
 
-open_on() { # --base|--head branche
-  gh pr list "$1" "$2" --state open --json number | j -r '.[].number'
-}
+# Le script qui lit la pile, partagé avec la finalisation.
+stack_script="$(dirname "${BASH_SOURCE[0]}")/../../../scripts/stack.sh"
 
 # Les nœuds d'une connexion d'une PR (fils, revues, commentaires), tous lus.
 pr_connection() { # numéro opération connexion champs
@@ -145,13 +144,19 @@ thread_comments() { # identifiant
 }
 
 # La raison pour laquelle une couche est ignorée, ou rien.
-skip_reason() { # couche-lue au-dessus-d'un-draft(yes|no)
+skip_reason() { # couche-lue-par-stack.sh au-dessus-d'un-draft(yes|no)
   j -r --arg above "$2" '
-    def approved:
-      .reviewDecision == "APPROVED"
-      or ((.reviewDecision // "") == ""
-        and ([.latestReviews[].state] | index("APPROVED") and (index("CHANGES_REQUESTED") | not)));
-    if .isDraft then "draft" elif $above == "yes" then "above draft" elif approved then "approved" else "" end' <<<"$1"
+    if .draft then "draft" elif $above == "yes" then "above draft"
+    elif .approval == "approved" then "approved" else "" end' <<<"$1"
+}
+
+# Les relecteurs passés d'une PR, hors son auteur, en JSON.
+reviewers() { # numéro
+  # `gh pr view` préfixe de `app/` le login d'une app, sans son suffixe `[bot]`.
+  pr_view "$1" author,latestReviews | j -c '
+    def plain: sub("^app/"; "") | sub("\\[bot\\]$"; "");
+    (.author.login // "" | plain) as $author
+    | [.latestReviews[].author.login // empty | select(plain != $author)] | unique'
 }
 
 # Les éléments en attente d'une PR, d'après tous ses échanges.
@@ -185,64 +190,47 @@ pending_elements() { # numéro
 
 # Une couche : ce qui la décrit, puis la raison pour laquelle elle est ignorée,
 # ou ses éléments en attente.
-layer() { # numéro au-dessus-d'un-draft(yes|no)
-  local info skipped elements
-  info=$(pr_view "$1" number,headRefName,baseRefName,isDraft,reviewDecision,latestReviews,author)
-  skipped=$(skip_reason "$info" "$2")
-  # `gh pr view` préfixe de `app/` le login d'une app, sans son suffixe `[bot]`.
-  info=$(j -c '
-    def plain: sub("^app/"; "") | sub("\\[bot\\]$"; "");
-    (.author.login // "" | plain) as $author | {
-      number, head: .headRefName, base: .baseRefName,
-      reviewers: ([.latestReviews[].author.login // empty | select(plain != $author)] | unique)
-    }' <<<"$info")
+layer() { # couche-lue-par-stack.sh au-dessus-d'un-draft(yes|no)
+  local number skipped info elements
+  number=$(j -r .number <<<"$1")
+  skipped=$(skip_reason "$1" "$2")
+  info=$(j -c --argjson reviewers "$(reviewers "$number")" \
+    '{number, head, base, reviewers: $reviewers}' <<<"$1")
   if [ -n "$skipped" ]; then
     j -c --arg skipped "$skipped" '. + {skipped: $skipped}' <<<"$info"
   else
-    elements=$(pending_elements "$1")
+    elements=$(pending_elements "$number")
     j -sc '.[0] + {pending: .[1]}' <<<"$info"$'\n'"$elements"
   fi
 }
 
-# Lit la pile : son tronc dans `trunk`, ses PR du bas vers le haut dans `layers`.
+# La pile, lue par `stack.sh`, dans `stack_json`. Une pile qui fourche garde son
+# code 3, et `stack.sh` en a déjà nommé les PR sur la sortie d'erreur ; tout
+# autre échec, de `gh` le plus souvent, sort avec le code 1 (l'usage, `pending`
+# l'a déjà vérifié).
 read_stack() { # PR
-  local number=$1 info below head above
-  # Vers le bas, par les bases, jusqu'au tronc.
-  while :; do
-    info=$(pr_view "$number" baseRefName)
-    trunk=$(j -r .baseRefName <<<"$info")
-    below=$(gh pr list --head "$trunk" --state open --json number | j -r '.[0].number // empty')
-    [ -n "$below" ] || break
-    number=$below
-  done
-  # Vers le haut, par les PR ouvertes basées sur chaque tête.
-  layers=()
-  while :; do
-    layers+=("$number")
-    info=$(pr_view "$number" headRefName)
-    head=$(j -r .headRefName <<<"$info")
-    above=$(open_on --base "$head")
-    [ -n "$above" ] || break
-    if [ "$(wc -l <<<"$above")" -gt 1 ]; then
-      leave 3 "stack forks on $head: $(sed 's/^/#/' <<<"$above" | paste -sd ' ' -)"
-    fi
-    number=$above
-  done
+  local code=0
+  stack_json=$(bash "$stack_script" "$1") || code=$?
+  case $code in
+    0) ;;
+    3) decided=yes && exit 3 ;;
+    *) exit 1 ;;
+  esac
 }
 
 pending() { # PR
-  local trunk layers number above_draft=no out all=""
+  local stack_json stack_layer above_draft=no out all=""
   read_stack "$1"
   # Du bas vers le haut : au-dessus d'une couche draft, tout est ignoré. Rien
   # n'est écrit avant que toutes les couches soient lues.
-  for number in "${layers[@]}"; do
-    out=$(layer "$number" "$above_draft")
+  while IFS= read -r stack_layer; do
+    out=$(layer "$stack_layer" "$above_draft")
     if [ "$(j -r .skipped <<<"$out")" = draft ]; then
       above_draft=yes
     fi
     all+="$out"$'\n'
-  done
-  j -s --arg trunk "$trunk" '{trunk: $trunk, layers: .}' <<<"$all"
+  done < <(j -c '.layers[]' <<<"$stack_json")
+  j -s --arg trunk "$(j -r .trunk <<<"$stack_json")" '{trunk: $trunk, layers: .}' <<<"$all"
 }
 
 # La marque fait reconnaître une réponse comme celle de l'agent.

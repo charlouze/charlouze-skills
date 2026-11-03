@@ -5,40 +5,11 @@
 #
 #   bats skills/rework-stack/scripts/rework-stack.bats
 
+source "$BATS_TEST_DIRNAME/../../../scripts/fake-gh/helpers.bash"
+
 setup() {
   SCRIPT="$BATS_TEST_DIRNAME/rework-stack.sh"
-  export FAKE_GH_WORLD="$BATS_TEST_TMPDIR/world.json"
-  export FAKE_GH_LOG="$BATS_TEST_TMPDIR/posted.jsonl"
-  # Le dossier du gh simulé, sous la forme que lit le PATH : sous Windows, le
-  # dossier du test peut s'écrire `C:/…`, dont le `:` couperait le PATH.
-  local fake
-  fake=$(cd "$BATS_TEST_DIRNAME/fake-gh" && pwd)
-  export PATH="$fake:$PATH"
-  # Aucun test ne doit atteindre le vrai gh, ni GitHub.
-  if [ "$(command -v gh)" != "$fake/gh" ]; then
-    echo "the fake gh is not first on PATH" >&2
-    return 1
-  fi
-  unset FAKE_GH_USER FAKE_GH_PAGE_SIZE FAKE_GH_FAIL FAKE_GH_FAIL_CODE
-  echo '{"prs": []}' >"$FAKE_GH_WORLD"
-  : >"$FAKE_GH_LOG"
-}
-
-# jq natif sous Windows écrit ses fins de ligne en CRLF.
-j() { jq "$@" | tr -d '\r'; }
-
-assert_eq() { # attendu obtenu message
-  if [ "$1" != "$2" ]; then
-    echo "$3: expected \"$1\", got \"$2\""
-    return 1
-  fi
-}
-
-world() { # filtre jq, arguments jq…
-  local filter=$1 next
-  shift
-  next=$(j "$@" "$filter" "$FAKE_GH_WORLD")
-  printf '%s\n' "$next" >"$FAKE_GH_WORLD"
+  fake_gh_setup
 }
 
 # Une PR ouverte par l'agent, sans revue ni échange. `gh pr view` donne le
@@ -50,13 +21,6 @@ pr() { # numéro tête base
     headRefName: $head, baseRefName: $base, reviewDecision: "", latestReviews: [],
     threads: [], reviews: [], comments: []
   }]' --argjson n "$1" --arg head "$2" --arg base "$3"
-}
-
-set_pr() { world "(.prs[] | select(.number == $1)) |= ($2)"; } # numéro mise-à-jour
-
-approval() { # numéro auteur état
-  world '(.prs[] | select(.number == $n) | .latestReviews) += [{author: {login: $who}, state: $state}]' \
-    --argjson n "$1" --arg who "$2" --arg state "$3"
 }
 
 # Un fil de revue sur a.txt, ligne 7 ; ses messages sont donnés « auteur:corps ».
@@ -195,11 +159,11 @@ posted() { j -c "$@" "$FAKE_GH_LOG"; }
   pr 3 layer-c layer-b
   pr 4 layer-d layer-c
   set_pr 1 '.reviewDecision = "APPROVED"'
-  approval 2 alice APPROVED
-  approval 3 alice APPROVED
-  approval 3 bob CHANGES_REQUESTED
+  latest_review 2 alice APPROVED
+  latest_review 3 alice APPROVED
+  latest_review 3 bob CHANGES_REQUESTED
   set_pr 4 '.reviewDecision = "REVIEW_REQUIRED"'
-  approval 4 alice APPROVED
+  latest_review 4 alice APPROVED
   for n in 1 2 3 4; do comment "$n" "C$n" carol "Look" 2026-01-01T00:00:01Z; done
 
   rework pending 1
@@ -226,13 +190,13 @@ posted() { j -c "$@" "$FAKE_GH_LOG"; }
   pr 1 layer-a main
   pr 2 layer-b layer-a
   set_pr 1 '.reviewDecision = "CHANGES_REQUESTED"'
-  approval 1 alice CHANGES_REQUESTED
-  approval 1 bob COMMENTED
-  approval 1 charlouze-dev-agent COMMENTED
-  approval 1 'charlouze-dev-agent[bot]' COMMENTED
+  latest_review 1 alice CHANGES_REQUESTED
+  latest_review 1 bob COMMENTED
+  latest_review 1 charlouze-dev-agent COMMENTED
+  latest_review 1 'charlouze-dev-agent[bot]' COMMENTED
   set_pr 2 '.author = {login: "alice"}'
-  approval 2 alice COMMENTED
-  approval 2 charlouze-dev-agent COMMENTED
+  latest_review 2 alice COMMENTED
+  latest_review 2 charlouze-dev-agent COMMENTED
 
   rework pending 1
   assert_eq 0 "$status" "status"

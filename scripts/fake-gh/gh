@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Un `gh` simulé pour les tests de rework-stack.sh : il répond, à partir d'un
-# monde JSON préparé par le test, aux seules commandes que le script lance, et
-# garde ce qu'on lui poste. Ni GitHub ni réseau.
+# Un `gh` simulé pour les tests des scripts qui lisent GitHub, `stack.sh` et
+# `rework-stack.sh` : il répond, à partir d'un monde JSON préparé par le test, aux
+# seules commandes que les scripts lancent, et garde ce qu'on lui poste. Ni GitHub
+# ni réseau.
 #
 #   FAKE_GH_WORLD      le monde : { "prs": [ … ] }, que les réponses modifient
 #   FAKE_GH_LOG        une ligne JSON par réponse postée
