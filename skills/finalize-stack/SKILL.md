@@ -81,4 +81,4 @@ Report to the human:
 - each finalized layer: PR, the ticket that `closing-links.sh` gave for it, number of commits, and the script's verdict;
 - the top's new title, the PRs whose body you edited, and whether the change spec closes with the stack or which tickets it waits for;
 - the local branches of the stack still point at their old commits: `git fetch`, then reset or delete them;
-- the merge command, for the human to run: `gh stack merge <top PR> --merge`.
+- the merge command, for the human to run, always as a merge commit: `gh stack merge <top PR> --merge` when the stack has two layers or more, `gh pr merge <PR> --merge` for a single PR, which `gh stack` does not know as a stack.

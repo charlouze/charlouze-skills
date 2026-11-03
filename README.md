@@ -37,7 +37,7 @@ Forme arrondie : une étape de l'humain ; rectangle : une commande que l'humain 
 - **Relire la pile**, par l'humain : chaque couche signale ses points d'attention et ses arbitrages ; les corrections s'ajoutent sans réécrire la pile ([politique d'historique git](skills/setup-charlouze-skills/git-history.md)).
 - **`/rework-stack`**, lancée par l'humain à la fin d'une passe de revue : la reprise répond à chaque commentaire en attente de la pile, corrige les couches par des commits ajoutés, puis redemande la revue ([skill](skills/rework-stack/SKILL.md)).
 - **`/finalize-stack`**, lancée par l'humain : la finalisation fond les corrections sans changer le diff d'aucune couche ([skill](skills/finalize-stack/SKILL.md)).
-- **Fusionner la pile**, par l'humain : `gh stack merge <PR du sommet> --merge`, un merge commit par pile ([ADR 0002](docs/adr/0002-merge-commit-apres-finalisation.md)).
+- **Fusionner la pile**, par l'humain : `gh stack merge <PR du sommet> --merge`, ou `gh pr merge <PR> --merge` pour une PR seule, un merge commit par pile ([ADR 0002](docs/adr/0002-merge-commit-apres-finalisation.md)).
 
 ## Installation
 
