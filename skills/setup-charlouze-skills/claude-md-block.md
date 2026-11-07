@@ -19,6 +19,8 @@ Git history: tidy your commits freely until a branch's first push; after it, rew
 
 Run: reserved zones declared in `docs/agents/run.md`, applied by ``Stacked delivery with `implement-spec` ``.
 
+Models: the model and effort of two subagent roles, declared in `docs/agents/models.md`, one line per role, `- <role>: <value>`; launch each subagent of a role with that role's model and effort. The roles, a closed list: `Grid review`, each grid subagent that `grid-review` launches, at every hook point; `Run exploration`, the optional exploration subagent of `/implement-spec`, launched with a subagent type that can write files, since it saves its notes. A role is added when a skill reads it, not before. A value is `session`, or one of the model aliases a subagent launch accepts, `sonnet`, `opus`, `haiku` or `fable`, optionally followed by a comma and an effort (`low`, `medium`, `high`, `xhigh` or `max`): `sonnet, low`. An alias follows its model's latest version. A missing file, a missing role or `session` leave the subagent the session's model and effort; a model without an effort keeps the session's effort. An unreadable line, with an unknown role or a value outside these lists, counts as missing, and whoever reads the file says so in one line of its final report, quoting each unreadable line: `grid-review` at the end of its report, `/implement-spec` in its end-of-run report. Every other subagent, implementers, `code-review`'s axes and `/rework-stack`'s included, keeps the session's model and effort.
+
 ### Slicing with `to-tickets`
 
 When you run `/to-tickets` on a change spec, keep its issue template and add the following.
@@ -94,6 +96,7 @@ What each one is for:
 - **`Change spec`** points `/to-spec` at the instructions that complete it, which [change-spec-file.md](change-spec-file.md) plans.
 - **`Git history`** states the policy in short, so that no session rewrites a pushed branch, and points at the whole policy, which [git-history-file.md](git-history-file.md) plans.
 - **`Run`** points at the project's reserved zones, which [run-file.md](run-file.md) plans.
+- **`Models`** gives the model and effort of the grid and exploration subagents, from the project's declaration, which [models-file.md](models-file.md) plans. It is the only source of the reading rule, so that the plugin keeps it up to date in every project, and it completes `/implement-spec`'s exploration step without replacing it.
 - **``Slicing with `to-tickets` ``** completes `/to-tickets` for a change spec written by the `Change spec` instructions.
 - **``Stacked delivery with `implement-spec` ``** has `/implement-spec` deliver the tickets of a change spec as one native stack, one layer per ticket, in place of its integration branch. It runs a ticket that touches a reserved zone in the main repository, and links the stack through the `gh stack` extension, which step 2 checks.
 

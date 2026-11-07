@@ -62,15 +62,15 @@ Le plugin n'a pas de version : chaque fusion sur `main` en fait une.
 
 | Skill | Ce qu'elle fait, ou ce que le plugin y change | Lancée par | Détail |
 |---|---|---|---|
-| `setup-charlouze-skills` | Prépare le dépôt : ses consignes, ses déclarations et ses réglages GitHub. | l'humain | [skill](skills/setup-charlouze-skills/SKILL.md) |
-| `grid-review` | Juge par les grilles du projet un brouillon de spec de changement ou un diff, aux trois points d'accroche, et un brouillon d'adoption au point spec. | `/to-spec`, `/adopt-context`, `code-review` | [skill](skills/grid-review/SKILL.md), [ADR 0001](docs/adr/0001-grilles-axe-de-revue-separe.md) |
+| `setup-charlouze-skills` | Prépare le dépôt : ses consignes, ses déclarations et ses réglages GitHub, dont `docs/agents/models.md`, le modèle et l'effort des subagents de grille et d'exploration. | l'humain | [skill](skills/setup-charlouze-skills/SKILL.md), [fichier des modèles](skills/setup-charlouze-skills/models-file.md) |
+| `grid-review` | Juge par les grilles du projet un brouillon de spec de changement ou un diff, aux trois points d'accroche, et un brouillon d'adoption au point spec, avec le modèle que déclare le projet. | `/to-spec`, `/adopt-context`, `code-review` | [skill](skills/grid-review/SKILL.md), [ADR 0001](docs/adr/0001-grilles-axe-de-revue-separe.md) |
 | `writing-functional-specs` | Donne la forme et les invariants d'une spec fonctionnelle. | `/to-spec`, `/adopt-context` | [skill](skills/writing-functional-specs/SKILL.md) |
 | `adopt-context` | Adopte des contextes d'un projet qui a déjà du code : leur spec fonctionnelle, leur glossaire et leur ligne de carte, puis une PR d'adoption et ses issues de dérive. | l'humain | [skill](skills/adopt-context/SKILL.md) |
 | `rework-stack` | Reprend les commentaires de revue d'une pile : répond à chacun, corrige les couches sans réécrire l'historique et suit les issues de dérive d'une PR d'adoption. | l'humain | [skill](skills/rework-stack/SKILL.md) |
 | `finalize-stack` | Finalise une pile approuvée, avant que l'humain la fusionne. | l'humain | [skill](skills/finalize-stack/SKILL.md) |
 | `to-spec` (Matt) | Ajoute à la spec de changement ses contextes, son écart en blocs et ses risques. | l'humain | [consigne](skills/setup-charlouze-skills/change-spec.md) |
 | `to-tickets` (Matt) | Fait nommer à chaque ticket les blocs qu'il transcrit. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
-| `implement-spec` (Matt) | Livre la spec de changement en une pile, une couche par ticket. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md) |
+| `implement-spec` (Matt) | Livre la spec de changement en une pile, une couche par ticket, et lance son exploration avec le modèle que déclare le projet. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md) |
 | `code-review` (Matt) | Joint à chaque revue l'axe Grilles de `grid-review`. | l'humain ou `/implement-spec` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 | `domain-modeling` (Matt) | Écrit le glossaire au format du plugin, et la carte des contextes. | `/grill-with-docs` | [consigne](skills/setup-charlouze-skills/matt-files.md) |
 | `triage` (Matt) | Range les dérives entre le code et les specs fonctionnelles. | l'humain | [consigne](skills/setup-charlouze-skills/matt-files.md) |
