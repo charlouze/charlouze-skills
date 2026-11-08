@@ -17,7 +17,7 @@ The model and effort of the project's subagents, one line per role. The roles, t
 
 | Role | Proposed value | Why |
 |---|---|---|
-| `Grid review` | `session` | until the spike of [#106](https://github.com/charlouze/charlouze-skills/issues/106) shows a lower setting as good as the session's model; its result is noted there |
+| `Grid review` | `session` | in [the spike of #106](https://github.com/charlouze/charlouze-skills/issues/106#issuecomment-6714849067), `sonnet` missed a defect that `opus` had found, a term made ambiguous; lower it only when a new spike shows a lower setting finding the same defects |
 | `Run exploration` | `sonnet` | reading the code and the documentation for the tickets does not need the session's model |
 
 ## Planning the change
