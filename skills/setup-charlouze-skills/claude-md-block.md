@@ -110,6 +110,26 @@ When you run `/implement` with two or more ticket references, deliver those tick
   - **`Draft layer`**: its body names its ticket without a closing keyword, and once it is open, comment its link on the stopped ticket: that is how the relaunch finds it;
   - **`Relaunch`**: when a ticket the human names has an open draft layer, finish that layer first, as the clause says, then stack the other tickets on top; otherwise, start a new stack from `main`;
   - **`Report`**: your final message in the session, since no change spec can carry it, with the inferred blockers and their reasons besides. The decisions to settle and the manual checks stay in the pull requests too, and a stopped ticket's question in its comment.
+
+### Autonomous triage with `triage`
+
+When you run `/triage`, however the request is worded, triage on your own, without waiting for the human. This replaces what `/triage` leaves to the human: picking from the buckets, deciding after your recommendation, settling a conflict or an unusual transition of states, and being grilled on a request that needs fleshing out. Its quick state override ("move #42 to ready-for-agent") still applies as it stands. The states and categories below are triage roles, whose labels `docs/agents/triage-labels.md` gives.
+
+- **Which tickets.** The tickets the human names. Without any, every ticket in the three buckets `/triage` shows as needing attention: the unlabelled tickets, those in `needs-triage`, and those in `needs-info` with a reply since the last triage notes.
+- **What holds.** For each ticket, `/triage`'s checks: gather its context, search for an existing implementation by domain concept, read `.out-of-scope/`, and verify the claim (reproduce the bug, run the relevant tests). Then apply the outcome as `/triage` does, within the rules below.
+- **Decide on what is written.** A state rests only on written sources: the ticket and its comments, the code, a functional spec, a glossary, an ADR, `.out-of-scope/`. When deciding would take a preference of the human's written in none of them, the ticket goes to `needs-info`. These cases go there in any event:
+  - a bug you cannot reproduce, or whose report lacks the details to try;
+  - a gap, a behaviour of the code that no functional spec describes: ask whether it is wanted, and leave it without a category, as the `Drift` section of `docs/agents/triage-labels.md` says;
+  - written sources that contradict each other;
+  - a conflict of state roles, or a transition `/triage` would flag as unusual: ask what `/triage` would have asked.
+
+  A ticket that would have needed grilling goes to `needs-info` too, and the questions of the grilling become those of its notes.
+- **`needs-info` notes.** `/triage`'s template, its questions specific and addressed to the human, without mentioning anyone: the author of a drift issue is often the agent itself, and triaging every bucket would otherwise send a notification per ticket.
+- **`wontfix`** only for a ticket already implemented, pointing at where, or one that matches an existing entry of `.out-of-scope/`. A new rejection is a product decision: `needs-info`, asking whether to reject it.
+- **Beyond a ticket.** A ticket that needs a change spec, as the `Launch` clause of ``Stacked delivery with `implement` `` defines it, goes to `ready-for-human`. Its comment says why, and points at the flow: `/grill-with-docs`, or `/wayfinder` when the change does not fit in one session, then `/to-spec`; say which of the two seems to fit. A violation stays a ticket for the agent.
+- **Every ticket leaves decided**: with one category and a decided state, or in `needs-info`; none stays in `needs-triage`.
+- **Your writes** are labels, comments and closed issues, on the issue tracker only: the repository stays as it is, with no block, functional spec, glossary, context map, ADR or `.out-of-scope/` entry.
+- **Report.** Each triaged ticket gets its comment, opening with `/triage`'s disclaimer. End the session with one table: ticket, category, state, and the reason in one line, the `needs-info` tickets first.
 ```
 
 The block holds two forms: **lines**, then **sections**.
@@ -129,6 +149,7 @@ What each one is for:
 - **``Slicing with `to-tickets` ``** completes `/to-tickets` for a change spec written by the `Change spec` instructions.
 - **``Stacked delivery with `implement-spec` ``** has `/implement-spec` deliver the tickets of a change spec as one native stack, one layer per ticket, in place of its integration branch. It runs a ticket that touches a reserved zone in the main repository, and links the stack through the `gh stack` extension, which step 2 checks.
 - **``Stacked delivery with `implement` ``** has `/implement`, given two or more tickets, deliver them as one native stack in an order it infers from the tickets and the code, by reference to ``Stacked delivery with `implement-spec` ``, whose clauses it rereads by their titles. That section stays as it is, under its heading: a renamed or rewritten section would never reach a project already set up, since a present section keeps its content.
+- **``Autonomous triage with `triage` ``** has `/triage` triage on its own, the tickets of its buckets or those named, without waiting for the human or grilling them: it decides a state only on what is written, sends to `needs-info` whatever needs a preference of the human's, and writes nothing but labels, comments and closed issues.
 
 ## Planning the change
 

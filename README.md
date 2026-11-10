@@ -15,7 +15,8 @@ flowchart TD
     blocs --> tickets["/to-tickets"]
     tickets --> enchainement["/implement-spec"]
     enchainement --> relecture(["Relire la pile"])
-    issues(["Des issues prêtes pour l'agent"]) --> implement["/implement"]
+    triage["/triage"] --> issues(["Des issues prêtes pour l'agent"])
+    issues --> implement["/implement"]
     implement --> relecture
     existant(["Un projet qui a déjà du code"]) --> adoption["/adopt-context"]
     adoption --> relecture
@@ -26,7 +27,7 @@ flowchart TD
 
     classDef completee stroke-dasharray:6 4,stroke-width:2px
     classDef ajoutee stroke-width:4px
-    class spec,tickets,enchainement,implement completee
+    class spec,tickets,enchainement,triage,implement completee
     class adoption,reprise,finalisation ajoutee
 ```
 
@@ -38,6 +39,7 @@ Forme arrondie : une étape de l'humain ; rectangle : une commande que l'humain 
 - **Relire les blocs**, par l'humain : la spec de changement n'est publiée qu'une fois ses blocs et ses flags validés ([consigne](skills/setup-charlouze-skills/change-spec.md)).
 - **`/to-tickets`** : chaque ticket nomme les blocs qu'il transcrit et tient seul une fois fusionné ([consigne](skills/setup-charlouze-skills/claude-md-block.md)).
 - **`/implement-spec`** : une pile, une couche par ticket, chacune revue avant d'être poussée ([consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md)).
+- **`/triage`**, lancée par l'humain, sans argument ou en nommant des tickets : trie seul ces tickets ou tous ceux à trier, sans attendre l'humain, et met en `needs-info`, avec des questions précises, ce qui demande sa préférence ; n'écrit que des labels, des commentaires et des fermetures ([consigne](skills/setup-charlouze-skills/claude-md-block.md)).
 - **`/implement`**, lancée par l'humain en nommant au moins deux tickets sans spec de changement (des dérives, des bugs, de petites améliorations) : une pile, une couche par ticket, dans l'ordre que l'agent déduit ; avec un seul ticket, `/implement` reste celui de Matt ([consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md)).
 - **`/adopt-context`**, lancée par l'humain sur un projet qui a déjà du code : l'adoption donne à un ou plusieurs contextes leur spec fonctionnelle, leur glossaire et leur ligne de carte, tirés des documents ou de l'humain, jamais du code, et ouvre une PR d'adoption sans code, avec une issue par dérive ([skill](skills/adopt-context/SKILL.md)).
 - **Relire la pile**, par l'humain : chaque couche signale ses points d'attention et ses arbitrages ; les corrections s'ajoutent sans réécrire la pile ([politique d'historique git](skills/setup-charlouze-skills/git-history.md)).
@@ -77,7 +79,7 @@ Le plugin n'a pas de version : chaque fusion sur `main` en fait une.
 | `implement` (Matt) | Livre plusieurs tickets nommés en une pile, une couche par ticket, dans l'ordre qu'il déduit, comme `implement-spec`. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md) |
 | `code-review` (Matt) | Joint à chaque revue l'axe Grilles de `grid-review`. | l'humain, `/implement-spec` ou `/implement` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 | `domain-modeling` (Matt) | Écrit le glossaire au format du plugin, et la carte des contextes. | `/grill-with-docs` | [consigne](skills/setup-charlouze-skills/matt-files.md) |
-| `triage` (Matt) | Range les dérives entre le code et les specs fonctionnelles. | l'humain | [consigne](skills/setup-charlouze-skills/matt-files.md) |
+| `triage` (Matt) | Trie seul les tickets en attente, et met en `needs-info` ce qui demande l'humain. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md), [dérives](skills/setup-charlouze-skills/matt-files.md) |
 | `pr` (Matt) | Ajoute au corps d'une couche ses arbitrages et ses vérifications manuelles. | `/implement-spec` ou `/implement` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 
 Les grilles par défaut ([déclaration](skills/grid-review/default-grids.md)) sont des skills de wondelai, que le plugin ne requiert pas.
