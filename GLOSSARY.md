@@ -29,7 +29,7 @@ La description d'un changement à venir, telle que la produit `/to-spec`, parent
 _Avoid_ : spec (seul), PRD, lot
 
 **Ticket** (*Ticket*) :
-Une tranche d'une spec de changement, telle que la produit `/to-tickets`, qui nomme les blocs de l'écart qu'elle transcrit.
+Une issue qu'un agent peut prendre et qu'une couche ferme : une tranche d'une spec de changement, telle que la produit `/to-tickets`, qui nomme les blocs de l'écart qu'elle transcrit, ou une issue isolée, comme une dérive.
 _Avoid_ : story, US
 
 **Écart** (*Delta*) :
@@ -77,8 +77,12 @@ La passe qui, une fois toute la pile approuvée, fond chaque correction dans le 
 _Avoid_ : nettoyage, squash
 
 **Enchaînement** (*Run*) :
-La passe où l'agent livre seul un ou plusieurs tickets d'une spec de changement en une pile, une couche par ticket.
+La passe où l'agent livre seul un ou plusieurs tickets en une pile, une couche par ticket : ceux d'une spec de changement, par `/implement-spec`, ou au moins deux que l'humain nomme, par `/implement`.
 _Avoid_ : série, lot, boucle
+
+**Bloqueur** (*Blocker*) :
+Un ticket qui doit être poussé avant qu'un autre démarre : natif quand il est déclaré sur l'issue, déduit quand l'enchaînement de `/implement` le tire des tickets et du code.
+_Avoid_ : dépendance, prérequis
 
 **Arbitrage** (*Ruling*) :
 Une décision que l'agent prend sans l'humain mais qu'il lui soumet dans la PR, « à trancher », avec sa raison et ce qu'elle coûte si elle est fausse. Approuver la PR la tranche.

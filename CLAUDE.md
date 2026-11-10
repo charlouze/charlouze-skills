@@ -87,6 +87,35 @@ When you run `/implement-spec`, deliver the change spec as one stack of pull req
 
   Your final message points at that comment.
 
+### Stacked delivery with `implement`
+
+When you run `/implement` with two or more ticket references, deliver those tickets as one stack of pull requests, one layer per ticket, as ``Stacked delivery with `implement-spec` `` says, instead of working them in the session and committing them to the current branch. This replaces `/implement`'s last step and its single agent; the rest of `/implement` holds: each ticket's title stated before starting, `tdd`, `code-review`. With a single ticket, a spec or a description, this section does not apply, and `/implement` runs as it is.
+
+- **One implementer per ticket.** Each ticket is built by its own implementer subagent, which runs the whole layer cycle in its own worktree; you implement nothing in the session. A reserved ticket, one that touches a zone `docs/agents/run.md` declares, runs in the main repository instead, as ``Stacked delivery with `implement-spec` `` says. A stash set aside at launch is named after the run's ticket numbers, since there is no change spec to name it after.
+- **Launch.** The run's tickets are those the human names, whatever their label. Do not assign a ticket when it starts. Not taken, each with its reason, given in the documents language:
+  - a closed ticket;
+  - a ticket whose parent is a change spec: reason "`/implement-spec`";
+  - a ticket that needs a change spec, because its fix would change a rule of a functional spec, a glossary or the context map, which only the blocks of a change spec change: reason "needs a change spec". A violation, whose fix brings the code back to its functional spec, is taken;
+  - a ticket natively blocked by an open ticket outside the run, and the descendants of every ticket not taken.
+- **Exploration.** At launch, an exploration subagent, the optional step of `/implement-spec`, mandatory here, reads each ticket and the code it targets, and gives for each one the modules it will touch, what its fix needs, and whether it needs a change spec.
+- **Task graph.** Build the run's task graph so:
+  - the native blockers between the run's tickets hold;
+  - a "needs" blocker, inferred: A blocks B when B's fix builds on A's, without which B does not build or its tests fail;
+  - a "same code" blocker, inferred: of two tickets that touch the same module, the one the human named first blocks the other, which lies on top of it instead of rebasing in conflict;
+  - an inferred blocker that would contradict a native one, or close a cycle, is dropped.
+
+  Do not write the graph on GitHub: the stack's order keeps its result, and a stopped ticket's comment what waits on it.
+- **Show it, without waiting.** At launch, show the graph, each inferred blocker with its kind and its reason, and the tickets not taken, then start the frontier, the tickets with no blocker left, without waiting for an answer. A human who wants another order interrupts you, or declares native blockers and relaunches.
+- **Read otherwise.** These clauses of ``Stacked delivery with `implement-spec` `` read otherwise, each named by its title; every other clause holds as it stands:
+  - **`Launch`**: replaced by this section's `Launch` and `Task graph`;
+  - **`One stack`**: one native stack per run;
+  - **`Reserved tickets`**: the modules the exploration gives a ticket stand for those the change spec assigns it;
+  - **`Stopping a ticket`**: case 1, the change spec's, reads: the ticket cannot be done as it is written, the code or a functional spec shows it wrong, or it turns out to need a change spec; case 2, the ADR's, reads: an ADR cannot be held. The stopped ticket's comment also lists each descendant waiting on it, with its blocker's kind and reason;
+  - **`Departing from the design`**: depart from the ticket's text, as a point of attention; there is no design to correct;
+  - **`Draft layer`**: its body names its ticket without a closing keyword, and once it is open, comment its link on the stopped ticket: that is how the relaunch finds it;
+  - **`Relaunch`**: when a ticket the human names has an open draft layer, finish that layer first, as the clause says, then stack the other tickets on top; otherwise, start a new stack from `main`;
+  - **`Report`**: your final message in the session, since no change spec can carry it, with the inferred blockers and their reasons besides. The decisions to settle and the manual checks stay in the pull requests too, and a stopped ticket's question in its comment.
+
 ## README
 
 The README is this plugin's home page: its presentation, its flow (the diagram, then one line per step), its installation, and one table row per skill of the plugin or of Matt's that the plugin completes. A rule's detail lives in its source (the skill, the setup's template of its instruction, or an ADR), and each line or row links to it.
