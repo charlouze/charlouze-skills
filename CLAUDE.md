@@ -136,6 +136,18 @@ When you run `/triage`, however the request is worded, triage on your own, witho
 - **Your writes** are labels, comments and closed issues, on the issue tracker only: the repository stays as it is, with no block, functional spec, glossary, context map, ADR or `.out-of-scope/` entry.
 - **Report.** Each triaged ticket gets its comment, opening with `/triage`'s disclaimer. End the session with one table: ticket, category, state, and the reason in one line, the `needs-info` tickets first.
 
+### Domain docs through the change spec
+
+The domain docs a grilling settles, the terms of the glossaries, functional specs and context map, and the ADRs, are born in a change spec only. This section completes the `Change spec` instructions and ``Slicing with `to-tickets` ``, which stay as they are: the whole format of a change spec, and of its slicing, is theirs and this section's together.
+
+- **During a grilling**, whichever skill runs it (`/grill-with-docs`, a grilling ticket of `/wayfinder`), `domain-modeling` still challenges the terms, discusses scenarios and offers ADRs on its three criteria. What it settles stays in the conversation: this replaces its step that updates the glossary inline: the grilling leaves the repository as it found it, with no `GLOSSARY.md`, `GLOSSARY-MAP.md`, `SPEC.md` or ADR written.
+- **At the end of a grilling**, list the terms and the ADRs it settled, and recall that only `/to-spec` writes them. A grilling ticket of `/wayfinder` carries this list in the comment that resolves it, where `/to-spec` rereads it, even in another session. After any other grilling, `/grill-with-docs` first among them, the list stays in the conversation, where `/to-spec` takes it up.
+- **`/to-spec`** turns the settled terms into blocks of the `Spec delta`, on the glossary of their context, as the `Change spec` instructions say. It adds an `ADRs` section, right after `Spec delta`: for each new ADR, its title and its full text in the format of `domain-modeling`, without a number; for each amended ADR, its number, its file, and the exact change of its text in a `diff` fence, like a block. With no ADR, the section says `none`, and why.
+- **Review.** At the `Review` step of the `Change spec` instructions, show the `ADRs` section in full right after the blocks. The change spec is published only once the human has accepted its ADRs.
+- **`/to-tickets`** gives each ADR, new or amended, to exactly one ticket: the first whose code applies the decision, or the first of the slicing when no code applies it. The ticket names it in *What to build* ("Writes the ADR “…”", "Amends ADR 0004", in the documents language), and the breakdown you present shows each ticket's ADRs beside its blocks.
+- **The ticket** writes the ADR in its layer, as the `ADRs` section gives it. A new ADR takes the number after the last ADR of its layer's base. At the rebase step of the `Layer cycle` of ``Stacked delivery with `implement-spec` ``, when a layer pushed meanwhile took that number, renumber the ADR, and every mention of its number in the layer.
+- **Outside a change spec**, nothing changes: an adoption writes in its pull request the ADRs the human accepted, and a layer's decision to settle comes with an ADR proposal when it meets the criteria of one.
+
 ## README
 
 The README is this plugin's home page: its presentation, its flow (the diagram, then one line per step), its installation, and one table row per skill of the plugin or of Matt's that the plugin completes. A rule's detail lives in its source (the skill, the setup's template of its instruction, or an ADR), and each line or row links to it.

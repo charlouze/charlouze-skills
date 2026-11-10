@@ -130,6 +130,18 @@ When you run `/triage`, however the request is worded, triage on your own, witho
 - **Every ticket leaves decided**: with one category and a decided state, or in `needs-info`; none stays in `needs-triage`.
 - **Your writes** are labels, comments and closed issues, on the issue tracker only: the repository stays as it is, with no block, functional spec, glossary, context map, ADR or `.out-of-scope/` entry.
 - **Report.** Each triaged ticket gets its comment, opening with `/triage`'s disclaimer. End the session with one table: ticket, category, state, and the reason in one line, the `needs-info` tickets first.
+
+### Domain docs through the change spec
+
+The domain docs a grilling settles, the terms of the glossaries, functional specs and context map, and the ADRs, are born in a change spec only. This section completes the `Change spec` instructions and ``Slicing with `to-tickets` ``, which stay as they are: the whole format of a change spec, and of its slicing, is theirs and this section's together.
+
+- **During a grilling**, whichever skill runs it (`/grill-with-docs`, a grilling ticket of `/wayfinder`), `domain-modeling` still challenges the terms, discusses scenarios and offers ADRs on its three criteria. What it settles stays in the conversation: this replaces its step that updates the glossary inline: the grilling leaves the repository as it found it, with no `GLOSSARY.md`, `GLOSSARY-MAP.md`, `SPEC.md` or ADR written.
+- **At the end of a grilling**, list the terms and the ADRs it settled, and recall that only `/to-spec` writes them. A grilling ticket of `/wayfinder` carries this list in the comment that resolves it, where `/to-spec` rereads it, even in another session. After any other grilling, `/grill-with-docs` first among them, the list stays in the conversation, where `/to-spec` takes it up.
+- **`/to-spec`** turns the settled terms into blocks of the `Spec delta`, on the glossary of their context, as the `Change spec` instructions say. It adds an `ADRs` section, right after `Spec delta`: for each new ADR, its title and its full text in the format of `domain-modeling`, without a number; for each amended ADR, its number, its file, and the exact change of its text in a `diff` fence, like a block. With no ADR, the section says `none`, and why.
+- **Review.** At the `Review` step of the `Change spec` instructions, show the `ADRs` section in full right after the blocks. The change spec is published only once the human has accepted its ADRs.
+- **`/to-tickets`** gives each ADR, new or amended, to exactly one ticket: the first whose code applies the decision, or the first of the slicing when no code applies it. The ticket names it in *What to build* ("Writes the ADR “…”", "Amends ADR 0004", in the documents language), and the breakdown you present shows each ticket's ADRs beside its blocks.
+- **The ticket** writes the ADR in its layer, as the `ADRs` section gives it. A new ADR takes the number after the last ADR of its layer's base. At the rebase step of the `Layer cycle` of ``Stacked delivery with `implement-spec` ``, when a layer pushed meanwhile took that number, renumber the ADR, and every mention of its number in the layer.
+- **Outside a change spec**, nothing changes: an adoption writes in its pull request the ADRs the human accepted, and a layer's decision to settle comes with an ADR proposal when it meets the criteria of one.
 ```
 
 The block holds two forms: **lines**, then **sections**.
@@ -150,6 +162,7 @@ What each one is for:
 - **``Stacked delivery with `implement-spec` ``** has `/implement-spec` deliver the tickets of a change spec as one native stack, one layer per ticket, in place of its integration branch. It runs a ticket that touches a reserved zone in the main repository, and links the stack through the `gh stack` extension, which step 2 checks.
 - **``Stacked delivery with `implement` ``** has `/implement`, given two or more tickets, deliver them as one native stack in an order it infers from the tickets and the code, by reference to ``Stacked delivery with `implement-spec` ``, whose clauses it rereads by their titles. That section stays as it is, under its heading: a renamed or rewritten section would never reach a project already set up, since a present section keeps its content.
 - **``Autonomous triage with `triage` ``** has `/triage` triage on its own, the tickets of its buckets or those named, without waiting for the human or grilling them: it decides a state only on what is written, sends to `needs-info` whatever needs a preference of the human's, and writes nothing but labels, comments and closed issues.
+- **`Domain docs through the change spec`** keeps the domain docs a grilling settles for the change spec: `domain-modeling` writes none of them while grilling, `/to-spec` gives the blocks and an `ADRs` section the human reviews right after the blocks, and `/to-tickets` gives each ADR to one ticket, which writes and numbers it in its layer. It completes the `Change spec` instructions and ``Slicing with `to-tickets` `` without rewriting them, so that it reaches a project already set up, since a present section keeps its content.
 
 ## Planning the change
 
