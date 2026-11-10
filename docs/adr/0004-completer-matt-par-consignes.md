@@ -8,6 +8,7 @@ Une skill de Matt est complétée par des consignes que pointe le `CLAUDE.md` du
   - `to-spec` par `docs/agents/change-spec.md` ;
   - `to-tickets` par la consigne de découpage du bloc `CLAUDE.md` ;
   - `implement-spec` par la consigne d'empilement du bloc `CLAUDE.md` (ADR 0003) ;
+  - `implement`, lancée avec plusieurs tickets, par la section du bloc `CLAUDE.md` qui la fait livrer comme la consigne d'empilement, à laquelle elle renvoie ;
   - `code-review` par `grid-review`, que la même ligne de `CLAUDE.md` joint à toute revue (ADR 0001), si bien que `/implement` et `/implement-spec` reçoivent l'axe Grilles sans être remplacées ;
   - `domain-modeling` par `docs/agents/domain.md` ;
   - `triage` par `docs/agents/triage-labels.md` ;

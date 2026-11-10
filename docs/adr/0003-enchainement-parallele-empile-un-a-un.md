@@ -10,3 +10,4 @@ Un enchaînement livre les tickets d'une spec de changement en une seule pile, u
 - Un projet déclare dans `docs/agents/run.md` les zones réservées au dépôt principal (la partie Unity d'un projet, par exemple). Un ticket qui touche une zone réservée s'exécute seul dans le dépôt principal.
 - Le travail partiel d'un ticket arrêté arrive toujours en dernier : il attend que les tickets en cours soient poussés, puis devient une couche draft au sommet. Ses descendants n'étant pas lancés, rien ne s'empile au-dessus.
 - Un ticket seul donne une PR ordinaire : la pile ne se crée qu'à la deuxième couche.
+- Un enchaînement lancé par `/implement` déduit ses bloqueurs des tickets et du code, faute de les avoir déclarés : un ticket qui a besoin d'un autre, ou qui touche le même module, se pose dessus.
