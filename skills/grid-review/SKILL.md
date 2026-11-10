@@ -54,7 +54,7 @@ Done when every grid kept has its sort.
 
 ### 3. Launch the grids
 
-Launch one subagent per active grid, every call in one message so that they run in parallel. Each prompt holds:
+Launch one subagent per active grid, every call in one message so that they run in parallel, each with the model and effort that the `Models` line of the project's `## charlouze-skills` block gives the `Grid review` role. Each prompt holds:
 
 - the object:
   - a diff: its command or patch file, and the changed files in the grid's zone, the only ones to judge;
@@ -76,6 +76,6 @@ Under `## Grids` (`## Grids at <hook point>` for a draft), one `### <grid>` part
 - **Condition unmet**: "not launched: the <object> does not meet its condition, <the condition>."
 - **Missing**: "grid `<skill>` missing: install it, or drop it from the project's declaration."
 
-End with one line: the count of failed lines per grid. Each grid stands on its own: rank nothing across grids.
+End with one line: the count of failed lines per grid. Each grid stands on its own: rank nothing across grids. Then add the line the `Models` line asks for when the models file has unreadable lines.
 
 Next to `code-review`, this report is the Grids axis: its own section beside `## Standards` and `## Spec`.
