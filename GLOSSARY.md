@@ -29,7 +29,7 @@ La description d'un changement à venir, telle que la produit `/to-spec`, parent
 _Avoid_ : spec (seul), PRD, lot
 
 **Ticket** (*Ticket*) :
-Une issue qu'un agent peut prendre et qu'une couche ferme : une tranche d'une spec de changement, telle que la produit `/to-tickets`, qui nomme les blocs de l'écart qu'elle transcrit, ou une issue isolée, comme une dérive.
+Une issue qu'un agent peut prendre et qu'une couche ferme : une tranche d'une spec de changement, telle que la produit `/to-tickets`, qui nomme les blocs de l'écart qu'elle transcrit et les ADR qu'elle écrit, ou une issue isolée, comme une dérive.
 _Avoid_ : story, US
 
 **Écart** (*Delta*) :

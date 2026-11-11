@@ -5,15 +5,15 @@ Une skill de Matt est complétée par des consignes que pointe le `CLAUDE.md` du
 ## Consequences
 
 - **Complétées** :
-  - `to-spec` par `docs/agents/change-spec.md` ;
-  - `to-tickets` par la consigne de découpage du bloc `CLAUDE.md` ;
+  - `to-spec` par `docs/agents/change-spec.md`, et par la section ``Domain docs through the change spec`` du bloc `CLAUDE.md`, qui y ajoute l'encart `ADRs` ;
+  - `to-tickets` par la consigne de découpage du bloc `CLAUDE.md`, et par la même section, qui confie chaque ADR à un ticket ;
   - `implement-spec` par la consigne d'empilement du bloc `CLAUDE.md` (ADR 0003) ;
   - `implement`, lancée avec plusieurs tickets, par la section du bloc `CLAUDE.md` qui la fait livrer comme la consigne d'empilement, à laquelle elle renvoie ;
   - `code-review` par `grid-review`, que la même ligne de `CLAUDE.md` joint à toute revue (ADR 0001), si bien que `/implement` et `/implement-spec` reçoivent l'axe Grilles sans être remplacées ;
-  - `domain-modeling` par `docs/agents/domain.md` ;
-  - `triage` par `docs/agents/triage-labels.md` ;
+  - `domain-modeling` par `docs/agents/domain.md`, et par la section ``Domain docs through the change spec`` du bloc `CLAUDE.md`, qui lui fait garder pour la spec de changement les termes et les ADR qu'elle tranche pendant un grilling ;
+  - `triage` par `docs/agents/triage-labels.md`, et par la section du bloc `CLAUDE.md` qui la fait trier seule, sans attendre l'humain ni le cuisiner ;
   - `pr` par ce que la consigne d'empilement demande au corps de chaque PR.
 - **Ajoutées** : `grid-review` (les trois points d'accroche), `finalize-stack`, `rework-stack` et `writing-functional-specs`. Aucune ne reprend un nom court de Matt : entre deux plugins, ce nom va au premier activé.
 - Le ticket reste celui de Matt. La conception vit dans la spec de changement, que `/implement-spec` donne à chaque implémenteur. Un ticket plus riche obligerait à remplacer `/to-tickets`.
-- Une consigne qui contredit une skill de Matt se vérifie par un spike, à refaire quand Matt fait évoluer la skill : une nouvelle version peut la défaire sans prévenir (ADR 0006).
+- Une consigne qui contredit une skill de Matt se vérifie par un spike, ou à son premier usage réel quand un échec s'y verrait tout de suite et ne coûterait qu'à défaire. La vérification est à refaire quand Matt fait évoluer la skill : une nouvelle version peut la défaire sans prévenir (ADR 0006).
 - Les fichiers de `docs/agents/` que le plugin lit portent des noms anglais fixes : `grids.md`, `run.md`, `models.md`, `git-history.md`, `change-spec.md`.

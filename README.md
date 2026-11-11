@@ -15,7 +15,8 @@ flowchart TD
     blocs --> tickets["/to-tickets"]
     tickets --> enchainement["/implement-spec"]
     enchainement --> relecture(["Relire la pile"])
-    issues(["Des issues prêtes pour l'agent"]) --> implement["/implement"]
+    triage["/triage"] --> issues(["Des issues prêtes pour l'agent"])
+    issues --> implement["/implement"]
     implement --> relecture
     existant(["Un projet qui a déjà du code"]) --> adoption["/adopt-context"]
     adoption --> relecture
@@ -26,18 +27,19 @@ flowchart TD
 
     classDef completee stroke-dasharray:6 4,stroke-width:2px
     classDef ajoutee stroke-width:4px
-    class spec,tickets,enchainement,implement completee
+    class spec,tickets,enchainement,triage,implement completee
     class adoption,reprise,finalisation ajoutee
 ```
 
 Forme arrondie : une étape de l'humain ; rectangle : une commande que l'humain lance et que l'agent mène. Pour les rectangles, trait pointillé : une skill de Matt que le plugin complète ; trait épais : une skill que le plugin ajoute ; trait fin : une skill de Matt telle quelle.
 
-- **`/grill-with-docs`**, quand le changement tient en une session (le cas par défaut) : la skill de Matt ; `domain-modeling`, qu'elle appelle, écrit le glossaire au format du plugin ([consigne](skills/setup-charlouze-skills/matt-files.md)).
-- **`/wayfinder`**, quand il est trop gros pour une session et encore flou : la skill de Matt, dont la carte de décisions mène à la spec de changement ([Matt](https://github.com/mattpocock/skills)).
-- **`/to-spec`** : les contextes touchés, l'écart en blocs, les risques et les grilles ([consigne](skills/setup-charlouze-skills/change-spec.md)).
-- **Relire les blocs**, par l'humain : la spec de changement n'est publiée qu'une fois ses blocs et ses flags validés ([consigne](skills/setup-charlouze-skills/change-spec.md)).
-- **`/to-tickets`** : chaque ticket nomme les blocs qu'il transcrit et tient seul une fois fusionné ([consigne](skills/setup-charlouze-skills/claude-md-block.md)).
+- **`/grill-with-docs`**, quand le changement tient en une session (le cas par défaut) : la skill de Matt ; `domain-modeling`, qu'elle appelle, challenge les termes et propose les ADR, mais le grilling ne laisse rien d'écrit : il finit sur la liste des termes et des ADR tranchés, que `/to-spec` reprend ([consigne](skills/setup-charlouze-skills/claude-md-block.md)).
+- **`/wayfinder`**, quand il est trop gros pour une session et encore flou : la skill de Matt, dont la carte de décisions mène à la spec de changement ; ses grillings ne laissent rien d'écrit, et chaque ticket de grilling porte dans le commentaire qui le résout les termes et les ADR tranchés, que `/to-spec` reprend ([Matt](https://github.com/mattpocock/skills), [consigne](skills/setup-charlouze-skills/claude-md-block.md)).
+- **`/to-spec`** : les contextes touchés, l'écart en blocs, l'encart `ADRs` (le texte de chaque ADR nouvelle ou amendée), les risques et les grilles ([consigne](skills/setup-charlouze-skills/change-spec.md), [consigne des ADR](skills/setup-charlouze-skills/claude-md-block.md)).
+- **Relire les blocs**, par l'humain : la spec de changement n'est publiée qu'une fois ses blocs, ses ADR et ses flags validés ([consigne](skills/setup-charlouze-skills/change-spec.md), [consigne des ADR](skills/setup-charlouze-skills/claude-md-block.md)).
+- **`/to-tickets`** : chaque ticket nomme les blocs qu'il transcrit et les ADR qu'il écrit, et tient seul une fois fusionné ([consigne](skills/setup-charlouze-skills/claude-md-block.md)).
 - **`/implement-spec`** : une pile, une couche par ticket, chacune revue avant d'être poussée ([consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md)).
+- **`/triage`**, lancée par l'humain, sans argument ou en nommant des tickets : trie seul ces tickets ou tous ceux à trier, sans attendre l'humain, et met en `needs-info`, avec des questions précises, ce qui demande sa préférence ; n'écrit que des labels, des commentaires et des fermetures ([consigne](skills/setup-charlouze-skills/claude-md-block.md)).
 - **`/implement`**, lancée par l'humain en nommant au moins deux tickets sans spec de changement (des dérives, des bugs, de petites améliorations) : une pile, une couche par ticket, dans l'ordre que l'agent déduit ; avec un seul ticket, `/implement` reste celui de Matt ([consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md)).
 - **`/adopt-context`**, lancée par l'humain sur un projet qui a déjà du code : l'adoption donne à un ou plusieurs contextes leur spec fonctionnelle, leur glossaire et leur ligne de carte, tirés des documents ou de l'humain, jamais du code, et ouvre une PR d'adoption sans code, avec une issue par dérive ([skill](skills/adopt-context/SKILL.md)).
 - **Relire la pile**, par l'humain : chaque couche signale ses points d'attention et ses arbitrages ; les corrections s'ajoutent sans réécrire la pile ([politique d'historique git](skills/setup-charlouze-skills/git-history.md)).
@@ -71,13 +73,13 @@ Le plugin n'a pas de version : chaque fusion sur `main` en fait une.
 | `adopt-context` | Adopte des contextes d'un projet qui a déjà du code : leur spec fonctionnelle, leur glossaire et leur ligne de carte, puis une PR d'adoption et ses issues de dérive. | l'humain | [skill](skills/adopt-context/SKILL.md) |
 | `rework-stack` | Reprend les commentaires de revue d'une pile : répond à chacun, corrige les couches sans réécrire l'historique et suit les issues de dérive d'une PR d'adoption. | l'humain | [skill](skills/rework-stack/SKILL.md) |
 | `finalize-stack` | Finalise une pile approuvée, avant que l'humain la fusionne. | l'humain | [skill](skills/finalize-stack/SKILL.md) |
-| `to-spec` (Matt) | Ajoute à la spec de changement ses contextes, son écart en blocs et ses risques. | l'humain | [consigne](skills/setup-charlouze-skills/change-spec.md) |
-| `to-tickets` (Matt) | Fait nommer à chaque ticket les blocs qu'il transcrit. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
+| `to-spec` (Matt) | Ajoute à la spec de changement ses contextes, son écart en blocs, l'encart `ADRs` et ses risques, et y reprend les termes et les ADR tranchés pendant le grilling. | l'humain | [consigne](skills/setup-charlouze-skills/change-spec.md), [consigne des ADR](skills/setup-charlouze-skills/claude-md-block.md) |
+| `to-tickets` (Matt) | Fait nommer à chaque ticket les blocs qu'il transcrit, et confie chaque ADR à un seul ticket, qui l'écrit et la numérote dans sa couche. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 | `implement-spec` (Matt) | Livre la spec de changement en une pile, une couche par ticket, et lance son exploration avec le modèle que déclare le projet. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md) |
 | `implement` (Matt) | Livre plusieurs tickets nommés en une pile, une couche par ticket, dans l'ordre qu'il déduit, comme `implement-spec`. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md) |
 | `code-review` (Matt) | Joint à chaque revue l'axe Grilles de `grid-review`. | l'humain, `/implement-spec` ou `/implement` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
-| `domain-modeling` (Matt) | Écrit le glossaire au format du plugin, et la carte des contextes. | `/grill-with-docs` | [consigne](skills/setup-charlouze-skills/matt-files.md) |
-| `triage` (Matt) | Range les dérives entre le code et les specs fonctionnelles. | l'humain | [consigne](skills/setup-charlouze-skills/matt-files.md) |
+| `domain-modeling` (Matt) | Donne au glossaire et à la carte des contextes le format du plugin ; pendant un grilling, n'écrit rien et garde pour `/to-spec` les termes et les ADR tranchés. | `/grill-with-docs`, `/wayfinder` | [formats](skills/setup-charlouze-skills/matt-files.md), [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
+| `triage` (Matt) | Trie seul les tickets en attente, et met en `needs-info` ce qui demande l'humain. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md), [dérives](skills/setup-charlouze-skills/matt-files.md) |
 | `pr` (Matt) | Ajoute au corps d'une couche ses arbitrages et ses vérifications manuelles. | `/implement-spec` ou `/implement` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 
 Les grilles par défaut ([déclaration](skills/grid-review/default-grids.md)) sont des skills de wondelai, que le plugin ne requiert pas.
