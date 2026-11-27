@@ -1,6 +1,6 @@
 # Les aides communes des tests qui préparent un monde JSON pour le `gh` simulé :
-# `scripts/stack.bats` et `skills/rework-stack/scripts/rework-stack.bats`, qui les
-# chargent par `source`.
+# `scripts/stack.bats`, `skills/rework-stack/scripts/rework-stack.bats` et
+# `skills/finalize-stack/scripts/closing-links.bats`, qui les chargent par `source`.
 
 # Place le `gh` simulé en tête du PATH, avec un monde vide et rien de posté.
 fake_gh_setup() {
