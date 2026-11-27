@@ -1,8 +1,10 @@
 # Les aides communes des tests qui préparent un monde JSON pour le `gh` simulé :
-# `scripts/stack.bats` et `skills/rework-stack/scripts/rework-stack.bats`, qui les
-# chargent par `source`.
+# `scripts/stack.bats`, `scripts/threads.bats`,
+# `skills/rework-stack/scripts/rework-stack.bats` et
+# `skills/guided-review/scripts/guided-review.bats`, qui les chargent par `source`.
 
-# Place le `gh` simulé en tête du PATH, avec un monde vide et rien de posté.
+# Place le `gh` simulé en tête du PATH, avec un monde vide, rien de posté et
+# aucun jeton vu.
 fake_gh_setup() {
   export FAKE_GH_WORLD="$BATS_TEST_TMPDIR/world.json"
   export FAKE_GH_LOG="$BATS_TEST_TMPDIR/posted.jsonl"
@@ -16,9 +18,11 @@ fake_gh_setup() {
     echo "the fake gh is not first on PATH" >&2
     return 1
   fi
-  unset FAKE_GH_USER FAKE_GH_PAGE_SIZE FAKE_GH_FAIL FAKE_GH_FAIL_CODE
+  export FAKE_GH_TOKENS="$BATS_TEST_TMPDIR/tokens"
+  unset FAKE_GH_USER FAKE_GH_USER_TYPE FAKE_GH_PAGE_SIZE FAKE_GH_FAIL FAKE_GH_FAIL_CODE
   echo '{"prs": []}' >"$FAKE_GH_WORLD"
   : >"$FAKE_GH_LOG"
+  : >"$FAKE_GH_TOKENS"
 }
 
 # jq natif sous Windows écrit ses fins de ligne en CRLF.

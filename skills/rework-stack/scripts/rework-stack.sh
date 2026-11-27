@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Le script de la reprise : il lit les éléments en attente d'une pile, et y
-# répond. Il est le seul à lire les échanges d'une pile sur GitHub, et le seul à
-# y poster ce qu'une reprise lit ensuite comme un message de l'agent (réponses et
-# renvois) : la marque de l'agent et la règle de ce qui est en attente ne vivent
-# qu'ici. La pile elle-même, sa forme et l'approbation de ses couches, il la lit
-# par `scripts/stack.sh`, à la racine du plugin.
+# répond. Il est le seul à lire les éléments en attente d'une pile sur GitHub, et
+# le seul à y poster ce qu'une reprise lit ensuite comme un message de l'agent
+# (réponses et renvois) : la règle de ce qui est en attente ne vit qu'ici. La
+# marque de l'agent et la lecture des fils de revue, il les tient de
+# `scripts/threads.sh`, à la racine du plugin, qu'il partage avec
+# `guided-review.sh`, le script de la revue guidée. La pile elle-même, sa forme
+# et les couches sautées, il la lit par `scripts/stack.sh`.
 #
 #   rework-stack.sh pending <PR>
 #   rework-stack.sh reply <element> <body>
@@ -22,10 +24,7 @@
 #   {"trunk": "<branche>", "layers": [<couche>, … du bas vers le haut]}
 # Une couche donne {number, head, base, reviewers}, ses relecteurs passés hors
 # l'auteur de la PR, puis soit `skipped`, la raison pour laquelle elle est
-# ignorée :
-#   draft        une couche draft
-#   above draft  toute couche au-dessus d'une couche draft
-#   approved     une couche approuvée, selon la règle de `stack.sh`
+# sautée, telle que `stack.sh` la donne (`draft`, `above draft`, `approved`),
 # soit `pending`, ses éléments en attente, chacun
 #   {kind, id, url, [path, line,] messages: [{author, body}, …]}
 # de l'un de ces genres :
@@ -84,71 +83,17 @@ j() { jq "$@" | tr -d '\r'; }
 
 j -n 1 >/dev/null 2>&1 || leave 1 "rework-stack.sh: jq not found"
 
-# La marque de l'agent, au début de chacun de ses messages.
-mark='🤖'
-
-# Le message de l'agent, en jq.
-jq_by_agent='def by_agent: (.body // "") | startswith($mark);'
-
 pr_view() { # numéro champs
   gh pr view "$1" --json "$2"
 }
 
-# Le script qui lit la pile, partagé avec la finalisation.
-stack_script="$(dirname "${BASH_SOURCE[0]}")/../../../scripts/stack.sh"
-
-# Les nœuds d'une connexion d'une PR (fils, revues, commentaires), tous lus.
-pr_connection() { # numéro opération connexion champs
-  gh api graphql --paginate -F owner='{owner}' -F repo='{repo}' -F number="$1" -f query="
-    query $2(\$owner: String!, \$repo: String!, \$number: Int!, \$endCursor: String) {
-      repository(owner: \$owner, name: \$repo) {
-        pullRequest(number: \$number) {
-          $3(first: 100, after: \$endCursor) {
-            pageInfo { hasNextPage endCursor }
-            nodes { $4 }
-          }
-        }
-      }
-    }" | j -c --arg connection "$3" '.data.repository.pullRequest[$connection].nodes[]'
-}
-
-# Les fils de revue d'une PR, chacun avec tous ses messages.
-threads() { # numéro
-  local thread longer
-  pr_connection "$1" LayerThreads reviewThreads '
-    id isResolved path line originalLine
-    comments(first: 100) { totalCount nodes { author { login } body url createdAt } }' \
-    | while IFS= read -r thread; do
-      # Un fil plus long qu'une page : ses messages sont relus, tous.
-      longer=$(j '.comments.totalCount > (.comments.nodes | length)' <<<"$thread")
-      if [ "$longer" = true ]; then
-        thread=$({ echo "$thread" && thread_comments "$(j -r .id <<<"$thread")"; } \
-          | j -sc '.[0].comments.nodes = .[1:] | .[0]')
-      fi
-      echo "$thread"
-    done
-}
-
-thread_comments() { # identifiant
-  gh api graphql --paginate -f id="$1" -f query='
-    query ThreadComments($id: ID!, $endCursor: String) {
-      node(id: $id) {
-        ... on PullRequestReviewThread {
-          comments(first: 100, after: $endCursor) {
-            pageInfo { hasNextPage endCursor }
-            nodes { author { login } body url createdAt }
-          }
-        }
-      }
-    }' | j -c '.data.node.comments.nodes[]'
-}
-
-# La raison pour laquelle une couche est ignorée, ou rien.
-skip_reason() { # couche-lue-par-stack.sh au-dessus-d'un-draft(yes|no)
-  j -r --arg above "$2" '
-    if .draft then "draft" elif $above == "yes" then "above draft"
-    elif .approval == "approved" then "approved" else "" end' <<<"$1"
-}
+# Les scripts partagés, à la racine du plugin : celui qui lit la pile, avec la
+# revue guidée et la finalisation ; la marque et la lecture des échanges d'une
+# PR, avec la revue guidée.
+shared="$(dirname "${BASH_SOURCE[0]}")/../../../scripts"
+stack_script="$shared/stack.sh"
+# shellcheck source=../../../scripts/threads.sh
+source "$shared/threads.sh"
 
 # Les relecteurs passés d'une PR, hors son auteur, en JSON.
 reviewers() { # numéro
@@ -188,12 +133,12 @@ pending_elements() { # numéro
       ]'
 }
 
-# Une couche : ce qui la décrit, puis la raison pour laquelle elle est ignorée,
+# Une couche : ce qui la décrit, puis la raison pour laquelle elle est sautée,
 # ou ses éléments en attente.
-layer() { # couche-lue-par-stack.sh au-dessus-d'un-draft(yes|no)
+layer() { # couche-lue-par-stack.sh
   local number skipped info elements
   number=$(j -r .number <<<"$1")
-  skipped=$(skip_reason "$1" "$2")
+  skipped=$(j -r '.skipped // ""' <<<"$1")
   info=$(j -c --argjson reviewers "$(reviewers "$number")" \
     '{number, head, base, reviewers: $reviewers}' <<<"$1")
   if [ -n "$skipped" ]; then
@@ -219,16 +164,11 @@ read_stack() { # PR
 }
 
 pending() { # PR
-  local stack_json stack_layer above_draft=no out all=""
+  local stack_json stack_layer all=""
   read_stack "$1"
-  # Du bas vers le haut : au-dessus d'une couche draft, tout est ignoré. Rien
-  # n'est écrit avant que toutes les couches soient lues.
+  # Rien n'est écrit avant que toutes les couches soient lues.
   while IFS= read -r stack_layer; do
-    out=$(layer "$stack_layer" "$above_draft")
-    if [ "$(j -r .skipped <<<"$out")" = draft ]; then
-      above_draft=yes
-    fi
-    all+="$out"$'\n'
+    all+="$(layer "$stack_layer")"$'\n'
   done < <(j -c '.layers[]' <<<"$stack_json")
   j -s --arg trunk "$(j -r .trunk <<<"$stack_json")" '{trunk: $trunk, layers: .}' <<<"$all"
 }

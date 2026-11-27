@@ -83,6 +83,27 @@ out() { j -c "$@" <<<"$output"; }
     "$(out '[.layers[] | [.draft, .approval]]')" "drafts and approvals"
 }
 
+@test "each layer gives why it is skipped: a draft, above a draft unless a draft itself, or approved; none to review" {
+  pr 1 layer-a main
+  pr 2 layer-b layer-a
+  pr 3 layer-c layer-b
+  pr 4 layer-d layer-c
+  pr 5 layer-e layer-d
+  pr 6 layer-f layer-e
+  set_pr 1 '.reviewDecision = "APPROVED"'
+  set_pr 2 '.reviewDecision = "CHANGES_REQUESTED"'
+  set_pr 4 '.isDraft = true | .reviewDecision = "APPROVED"'
+  set_pr 5 '.reviewDecision = "APPROVED"'
+  set_pr 6 '.isDraft = true'
+
+  stack 1
+  assert_eq 0 "$status" "status"
+  assert_eq '["approved",null,null,"draft","above draft","draft"]' \
+    "$(out '[.layers[].skipped]')" "skipped"
+  assert_eq '[true,false,false,true,true,true]' \
+    "$(out '[.layers[] | has("skipped")]')" "skipped absent from a layer to review"
+}
+
 @test "a stack that forks fails with code 3, naming both PRs, with nothing on its output" {
   pr 1 layer-a main
   pr 2 layer-b layer-a

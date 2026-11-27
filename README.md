@@ -20,7 +20,9 @@ flowchart TD
     implement --> relecture
     existant(["Un projet qui a déjà du code"]) --> adoption["/adopt-context"]
     adoption --> relecture
-    relecture -- "des commentaires" --> reprise["/rework-stack"]
+    relecture --> guidee["/guided-review"]
+    guidee -- "des demandes" --> reprise["/rework-stack"]
+    relecture -- "des commentaires" --> reprise
     reprise --> relecture
     relecture -- "tout approuvé" --> finalisation["/finalize-stack"]
     finalisation --> fusion(["Fusionner la pile"])
@@ -28,7 +30,7 @@ flowchart TD
     classDef completee stroke-dasharray:6 4,stroke-width:2px
     classDef ajoutee stroke-width:4px
     class spec,tickets,enchainement,triage,implement completee
-    class adoption,reprise,finalisation ajoutee
+    class adoption,guidee,reprise,finalisation ajoutee
 ```
 
 Forme arrondie : une étape de l'humain ; rectangle : une commande que l'humain lance et que l'agent mène. Pour les rectangles, trait pointillé : une skill de Matt que le plugin complète ; trait épais : une skill que le plugin ajoute ; trait fin : une skill de Matt telle quelle.
@@ -43,6 +45,7 @@ Forme arrondie : une étape de l'humain ; rectangle : une commande que l'humain 
 - **`/implement`**, lancée par l'humain en nommant au moins deux tickets sans spec de changement (des dérives, des bugs, de petites améliorations) : une pile, une couche par ticket, dans l'ordre que l'agent déduit ; avec un seul ticket, `/implement` reste celui de Matt ([consigne](skills/setup-charlouze-skills/claude-md-block.md), [ADR 0003](docs/adr/0003-enchainement-parallele-empile-un-a-un.md)).
 - **`/adopt-context`**, lancée par l'humain sur un projet qui a déjà du code : l'adoption donne à un ou plusieurs contextes leur spec fonctionnelle, leur glossaire et leur ligne de carte, tirés des documents ou de l'humain, jamais du code, et ouvre une PR d'adoption sans code, avec une issue par dérive ([skill](skills/adopt-context/SKILL.md)).
 - **Relire la pile**, par l'humain : chaque couche signale ses points d'attention et ses arbitrages ; les corrections s'ajoutent sans réécrire la pile ([politique d'historique git](skills/setup-charlouze-skills/git-history.md)).
+- **`/guided-review`**, lancée par l'humain dans une nouvelle session, à la sortie d'un enchaînement ou d'une reprise : la revue guidée lui présente, couche par couche, les arbitrages, les points d'attention et les vérifications manuelles encore ouverts, avec l'avis de l'agent, et poste ses verdicts sous son nom, une revue GitHub par couche qu'il valide avant qu'elle parte ([skill](skills/guided-review/SKILL.md)).
 - **`/rework-stack`**, lancée par l'humain à la fin d'une passe de revue : la reprise répond à chaque commentaire en attente de la pile, corrige les couches par des commits ajoutés, tient à jour les issues de dérive d'une PR d'adoption, puis redemande la revue ([skill](skills/rework-stack/SKILL.md)).
 - **`/finalize-stack`**, lancée par l'humain : la finalisation fond les corrections sans changer le diff d'aucune couche ([skill](skills/finalize-stack/SKILL.md)).
 - **Fusionner la pile**, par l'humain : `gh stack merge <PR du sommet> --merge`, ou `gh pr merge <PR> --merge` pour une PR seule, un merge commit par pile ([ADR 0002](docs/adr/0002-merge-commit-apres-finalisation.md)).
@@ -72,6 +75,7 @@ Le plugin n'a pas de version : chaque fusion sur `main` en fait une.
 | `writing-functional-specs` | Donne la forme et les invariants d'une spec fonctionnelle. | `/to-spec`, `/adopt-context` | [skill](skills/writing-functional-specs/SKILL.md) |
 | `adopt-context` | Adopte des contextes d'un projet qui a déjà du code : leur spec fonctionnelle, leur glossaire et leur ligne de carte, puis une PR d'adoption et ses issues de dérive. | l'humain | [skill](skills/adopt-context/SKILL.md) |
 | `rework-stack` | Reprend les commentaires de revue d'une pile : répond à chacun, corrige les couches sans réécrire l'historique et suit les issues de dérive d'une PR d'adoption. | l'humain | [skill](skills/rework-stack/SKILL.md) |
+| `guided-review` | Passe en revue avec l'humain, couche par couche, les arbitrages, les points d'attention et les vérifications manuelles d'une pile, et poste ses verdicts sous son nom. | l'humain | [skill](skills/guided-review/SKILL.md) |
 | `finalize-stack` | Finalise une pile approuvée, avant que l'humain la fusionne. | l'humain | [skill](skills/finalize-stack/SKILL.md) |
 | `to-spec` (Matt) | Ajoute à la spec de changement ses contextes, son écart en blocs, l'encart `ADRs` et ses risques, et y reprend les termes et les ADR tranchés pendant le grilling. | l'humain | [consigne](skills/setup-charlouze-skills/change-spec.md), [consigne des ADR](skills/setup-charlouze-skills/claude-md-block.md) |
 | `to-tickets` (Matt) | Fait nommer à chaque ticket les blocs qu'il transcrit, et confie chaque ADR à un seul ticket, qui l'écrit et la numérote dans sa couche. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
@@ -80,7 +84,7 @@ Le plugin n'a pas de version : chaque fusion sur `main` en fait une.
 | `code-review` (Matt) | Joint à chaque revue l'axe Grilles de `grid-review`. | l'humain, `/implement-spec` ou `/implement` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 | `domain-modeling` (Matt) | Donne au glossaire et à la carte des contextes le format du plugin ; pendant un grilling, n'écrit rien et garde pour `/to-spec` les termes et les ADR tranchés. | `/grill-with-docs`, `/wayfinder` | [formats](skills/setup-charlouze-skills/matt-files.md), [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 | `triage` (Matt) | Trie seul les tickets en attente, et met en `needs-info` ce qui demande l'humain. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md), [dérives](skills/setup-charlouze-skills/matt-files.md) |
-| `pr` (Matt) | Ajoute au corps d'une couche ses arbitrages et ses vérifications manuelles. | `/implement-spec` ou `/implement` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
+| `pr` (Matt) | Ajoute au corps d'une couche ses arbitrages et ses vérifications manuelles, en cases à cocher. | `/implement-spec` ou `/implement` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 
 Les grilles par défaut ([déclaration](skills/grid-review/default-grids.md)) sont des skills de wondelai, que le plugin ne requiert pas.
 
