@@ -80,7 +80,7 @@ Le plugin n'a pas de version : chaque fusion sur `main` en fait une.
 | `code-review` (Matt) | Joint à chaque revue l'axe Grilles de `grid-review`. | l'humain, `/implement-spec` ou `/implement` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 | `domain-modeling` (Matt) | Donne au glossaire et à la carte des contextes le format du plugin ; pendant un grilling, n'écrit rien et garde pour `/to-spec` les termes et les ADR tranchés. | `/grill-with-docs`, `/wayfinder` | [formats](skills/setup-charlouze-skills/matt-files.md), [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 | `triage` (Matt) | Trie seul les tickets en attente, et met en `needs-info` ce qui demande l'humain. | l'humain | [consigne](skills/setup-charlouze-skills/claude-md-block.md), [dérives](skills/setup-charlouze-skills/matt-files.md) |
-| `pr` (Matt) | Ajoute au corps d'une couche ses arbitrages et ses vérifications manuelles. | `/implement-spec` ou `/implement` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
+| `pr` (Matt) | Ajoute au corps d'une couche ses arbitrages et ses vérifications manuelles, en cases à cocher. | `/implement-spec` ou `/implement` | [consigne](skills/setup-charlouze-skills/claude-md-block.md) |
 
 Les grilles par défaut ([déclaration](skills/grid-review/default-grids.md)) sont des skills de wondelai, que le plugin ne requiert pas.
 
