@@ -3,8 +3,8 @@
 # répond. Il est le seul à lire les échanges d'une pile sur GitHub, et le seul à
 # y poster ce qu'une reprise lit ensuite comme un message de l'agent (réponses et
 # renvois) : la marque de l'agent et la règle de ce qui est en attente ne vivent
-# qu'ici. La pile elle-même, sa forme et l'approbation de ses couches, il la lit
-# par `scripts/stack.sh`, à la racine du plugin.
+# qu'ici. La pile elle-même, sa forme et les couches sautées, il la lit par
+# `scripts/stack.sh`, à la racine du plugin.
 #
 #   rework-stack.sh pending <PR>
 #   rework-stack.sh reply <element> <body>
@@ -22,10 +22,7 @@
 #   {"trunk": "<branche>", "layers": [<couche>, … du bas vers le haut]}
 # Une couche donne {number, head, base, reviewers}, ses relecteurs passés hors
 # l'auteur de la PR, puis soit `skipped`, la raison pour laquelle elle est
-# ignorée :
-#   draft        une couche draft
-#   above draft  toute couche au-dessus d'une couche draft
-#   approved     une couche approuvée, selon la règle de `stack.sh`
+# sautée, telle que `stack.sh` la donne (`draft`, `above draft`, `approved`),
 # soit `pending`, ses éléments en attente, chacun
 #   {kind, id, url, [path, line,] messages: [{author, body}, …]}
 # de l'un de ces genres :
@@ -143,13 +140,6 @@ thread_comments() { # identifiant
     }' | j -c '.data.node.comments.nodes[]'
 }
 
-# La raison pour laquelle une couche est ignorée, ou rien.
-skip_reason() { # couche-lue-par-stack.sh au-dessus-d'un-draft(yes|no)
-  j -r --arg above "$2" '
-    if .draft then "draft" elif $above == "yes" then "above draft"
-    elif .approval == "approved" then "approved" else "" end' <<<"$1"
-}
-
 # Les relecteurs passés d'une PR, hors son auteur, en JSON.
 reviewers() { # numéro
   # `gh pr view` préfixe de `app/` le login d'une app, sans son suffixe `[bot]`.
@@ -188,12 +178,12 @@ pending_elements() { # numéro
       ]'
 }
 
-# Une couche : ce qui la décrit, puis la raison pour laquelle elle est ignorée,
+# Une couche : ce qui la décrit, puis la raison pour laquelle elle est sautée,
 # ou ses éléments en attente.
-layer() { # couche-lue-par-stack.sh au-dessus-d'un-draft(yes|no)
+layer() { # couche-lue-par-stack.sh
   local number skipped info elements
   number=$(j -r .number <<<"$1")
-  skipped=$(skip_reason "$1" "$2")
+  skipped=$(j -r '.skipped // ""' <<<"$1")
   info=$(j -c --argjson reviewers "$(reviewers "$number")" \
     '{number, head, base, reviewers: $reviewers}' <<<"$1")
   if [ -n "$skipped" ]; then
@@ -219,16 +209,11 @@ read_stack() { # PR
 }
 
 pending() { # PR
-  local stack_json stack_layer above_draft=no out all=""
+  local stack_json stack_layer all=""
   read_stack "$1"
-  # Du bas vers le haut : au-dessus d'une couche draft, tout est ignoré. Rien
-  # n'est écrit avant que toutes les couches soient lues.
+  # Rien n'est écrit avant que toutes les couches soient lues.
   while IFS= read -r stack_layer; do
-    out=$(layer "$stack_layer" "$above_draft")
-    if [ "$(j -r .skipped <<<"$out")" = draft ]; then
-      above_draft=yes
-    fi
-    all+="$out"$'\n'
+    all+="$(layer "$stack_layer")"$'\n'
   done < <(j -c '.layers[]' <<<"$stack_json")
   j -s --arg trunk "$(j -r .trunk <<<"$stack_json")" '{trunk: $trunk, layers: .}' <<<"$all"
 }

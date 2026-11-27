@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Lit une pile sur GitHub : sa forme et l'approbation de chacune de ses couches.
-# Il est le seul à les lire, pour les deux skills qui l'appellent, la reprise
-# (`rework-stack`, par `rework-stack.sh pending`) et la finalisation
-# (`finalize-stack`) : le parcours de la pile et la règle d'approbation ne vivent
-# qu'ici. Il ne lit aucun échange (fils, revues, commentaires).
+# Lit une pile sur GitHub : sa forme, l'approbation de chacune de ses couches et
+# celles qui sont sautées. Il est le seul à les lire, pour les skills qui
+# l'appellent, la reprise (`rework-stack`, par `rework-stack.sh pending`) et la
+# finalisation (`finalize-stack`) : le parcours de la pile, la règle
+# d'approbation et celle des couches sautées ne vivent qu'ici. Il ne lit aucun
+# échange (fils, revues, commentaires).
 #
 #   stack.sh <PR>
 #
@@ -18,6 +19,13 @@
 #   changes requested  `reviewDecision` à CHANGES_REQUESTED ou, quand il est
 #                      vide, une demande de changement dans `latestReviews`
 #   none               sinon : revue requise, ou personne n'a relu
+# puis, pour une couche sautée, celle qu'une passe de revue n'a pas à revoir,
+# `skipped`, la raison pour laquelle elle l'est, absent pour une couche à revoir :
+#   draft              une couche draft
+#   above draft        toute couche au-dessus d'une couche draft
+#   approved           une couche approuvée
+# Un lecteur qui juge chaque couche par `draft` et `approval`, comme la
+# finalisation, l'ignore.
 #
 # Code : 0 fait, 1 échec de `gh`, 2 usage, 3 pile qui fourche (deux PR ouvertes
 # sur une même base, nommées sur la sortie d'erreur). En échec, rien n'est écrit
@@ -115,7 +123,15 @@ stack() { # PR
   for number in "${layers[@]}"; do
     all+="$(layer "$number")"$'\n'
   done
-  j -s --arg trunk "$trunk" '{trunk: $trunk, layers: .}' <<<"$all"
+  # Du bas vers le haut : au-dessus d'une couche draft, tout est sauté.
+  j -s --arg trunk "$trunk" '
+    def with_skipped($above_draft):
+      (if .draft then "draft" elif $above_draft then "above draft"
+       elif .approval == "approved" then "approved" else null end) as $skipped
+      | if $skipped then . + {skipped: $skipped} else . end;
+    . as $layers
+    | {trunk: $trunk,
+       layers: [range(length) as $i | $layers[$i] | with_skipped(any($layers[:$i][]; .draft))]}' <<<"$all"
 }
 
 [ $# -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]] || usage
