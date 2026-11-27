@@ -67,7 +67,7 @@ done
 # La spec de changement : le parent commun des tickets de la pile.
 parents=$(for ticket in "${tickets[@]}"; do
   gh api graphql -F number="$ticket" -f query='
-    query($owner: String!, $repo: String!, $number: Int!) {
+    query IssueParent($owner: String!, $repo: String!, $number: Int!) {
       repository(owner: $owner, name: $repo) { issue(number: $number) { parent { number } } }
     }' -F owner='{owner}' -F repo='{repo}' --jq '.data.repository.issue.parent.number // empty'
 done | sort -nu)

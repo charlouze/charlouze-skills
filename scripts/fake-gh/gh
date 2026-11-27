@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Un `gh` simulé pour les tests des scripts qui lisent GitHub, `stack.sh` et
-# `rework-stack.sh` : il répond, à partir d'un monde JSON préparé par le test, aux
-# seules commandes que les scripts lancent, et garde ce qu'on lui poste. Ni GitHub
-# ni réseau.
+# Un `gh` simulé pour les tests des scripts qui lisent GitHub, `stack.sh`,
+# `rework-stack.sh` et `closing-links.sh` : il répond, à partir d'un monde JSON
+# préparé par le test, aux seules commandes que les scripts lancent, et garde ce
+# qu'on lui poste. Ni GitHub ni réseau.
 #
-#   FAKE_GH_WORLD      le monde : { "prs": [ … ] }, que les réponses modifient
+#   FAKE_GH_WORLD      le monde : { "prs": [ … ], "issues": [ … ] }, que les réponses modifient
 #   FAKE_GH_LOG        une ligne JSON par réponse postée
 #   FAKE_GH_USER       l'auteur des réponses postées (défaut : human)
 #   FAKE_GH_PAGE_SIZE  la taille d'une page (défaut : 100)
@@ -13,6 +13,11 @@
 #
 # Il reconnaît chaque requête par le nom d'opération que lui donne le script
 # (`LayerThreads`, `CommentOnPr`…) : renommer l'une d'elles demande de le suivre ici.
+#
+# Comme GitHub, il ne lit un mot-clé de fermeture qu'à l'écriture du corps :
+# `pr edit` recalcule les `closingIssuesReferences` d'une PR d'après les tickets
+# que son corps nomme et qui existent dans `issues` ; le monde peut les semer
+# périmées.
 #
 # Comme le vrai `gh`, `api graphql --paginate` ne suit les pages que si la
 # requête déclare `$endCursor` et demande `pageInfo`, et rend alors un document
@@ -45,13 +50,45 @@ update_world() { # filtre jq, arguments jq…
   printf '%s\n' "$next" >"$world"
 }
 
-pr_view() { # numéro --json champs
+pr_view() { # numéro --json champs [--jq filtre]
   local out
   [ "$2" = "--json" ] || fail "pr view: unexpected arguments: $*"
   out=$(j -c --argjson n "$1" --arg fields "$3" \
     '.prs[] | select(.number == $n) | with_entries(select(.key as $k | $fields | split(",") | index($k)))' "$world")
   [ -n "$out" ] || fail "no pull requests found for #$1"
-  echo "$out"
+  if [ "${4:-}" = "--jq" ]; then
+    j -r "$5" <<<"$out"
+  else
+    echo "$out"
+  fi
+}
+
+pr_edit() { # numéro --body-file -, le corps sur l'entrée
+  local body
+  [ "$2 $3" = "--body-file -" ] || fail "pr edit: unexpected arguments: $*"
+  j -e --argjson n "$1" 'any(.prs[]; .number == $n)' "$world" >/dev/null || fail "no pull requests found for #$1"
+  body=$(cat)
+  update_world '[(.issues // [])[].number] as $known | (.prs[] | select(.number == $n)) |= (
+      .body = $body
+      | .closingIssuesReferences = ([$body | scan("\\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?) #([0-9]+)"; "i") | .[0] | tonumber]
+        | unique | map(select(IN($known[]))) | map({number: .}))
+    )' --argjson n "$1" --arg body "$body"
+  echo "https://github.com/o/r/pull/$1"
+}
+
+# Les sous-tickets d'un ticket, en une page.
+api_rest() { # repos/{owner}/{repo}/issues/<n>/sub_issues --jq filtre
+  local n
+  [[ "${1:-}" =~ ^repos/\{owner\}/\{repo\}/issues/([0-9]+)/sub_issues$ ]] || fail "api: unexpected path: ${1:-}"
+  n=${BASH_REMATCH[1]}
+  [ "${2:-}" = "--jq" ] || fail "api: unexpected arguments: $*"
+  j -c --argjson n "$n" '[(.issues // [])[] | select(.parent == $n) | {number, state}]' "$world" | j -r "$3"
+}
+
+issue_parent() {
+  j -c --argjson n "${vars[number]}" '{data: {repository: {issue: (
+      [(.issues // [])[] | select(.number == $n) | {parent: (if .parent then {number: .parent} else null end)}] | first
+    )}}}' "$world"
 }
 
 pr_list() { # --base|--head branche --state open --json number
@@ -147,12 +184,16 @@ post() { # opération
 }
 
 api_graphql() {
-  local query="" operation
+  local query="" operation filter=""
   declare -gA vars=()
   paginate=no
   while [ $# -gt 0 ]; do
     case $1 in
       --paginate) paginate=yes ;;
+      --jq)
+        filter=$2
+        shift
+        ;;
       -f | -F)
         if [ "${2%%=*}" = query ]; then
           query=${2#query=}
@@ -169,17 +210,28 @@ api_graphql() {
     paginate=no
   fi
   operation=$(grep -oE '(query|mutation) [A-Za-z]+' <<<"$query" | head -n 1 | cut -d' ' -f2)
-  case $operation in
-    LayerThreads | LayerReviews | LayerComments | ThreadComments) paged "$operation" ;;
+  if [ -n "$filter" ]; then
+    answer "$operation" | j -r "$filter"
+  else
+    answer "$operation"
+  fi
+}
+
+answer() { # opération
+  case $1 in
+    LayerThreads | LayerReviews | LayerComments | ThreadComments) paged "$1" ;;
     Element) element ;;
-    ReplyInThread | CommentOnPr) post "$operation" ;;
-    *) fail "api graphql: unknown operation: ${operation:-none}" ;;
+    ReplyInThread | CommentOnPr) post "$1" ;;
+    IssueParent) issue_parent ;;
+    *) fail "api graphql: unknown operation: ${1:-none}" ;;
   esac
 }
 
 case "${1:-} ${2:-}" in
   "pr view") shift 2 && pr_view "$@" ;;
   "pr list") shift 2 && pr_list "$@" ;;
+  "pr edit") shift 2 && pr_edit "$@" ;;
   "api graphql") shift 2 && api_graphql "$@" ;;
+  "api --paginate") shift 2 && api_rest "$@" ;;
   *) fail "unexpected command: $*" ;;
 esac
