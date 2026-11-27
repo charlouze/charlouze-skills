@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# Un `gh` simulé pour les tests des scripts qui lisent GitHub, `stack.sh` et
-# `rework-stack.sh` : il répond, à partir d'un monde JSON préparé par le test, aux
+# Un `gh` simulé pour les tests des scripts qui lisent GitHub, `stack.sh`,
+# `rework-stack.sh` et `guided-review.sh` : il répond, à partir d'un monde JSON préparé par le test, aux
 # seules commandes que les scripts lancent, et garde ce qu'on lui poste. Ni GitHub
 # ni réseau.
 #
 #   FAKE_GH_WORLD      le monde : { "prs": [ … ] }, que les réponses modifient
 #   FAKE_GH_LOG        une ligne JSON par réponse postée
-#   FAKE_GH_USER       l'auteur des réponses postées (défaut : human)
+#   FAKE_GH_USER       l'auteur des réponses postées, et le login que donne
+#                      `api user` (défaut : human)
+#   FAKE_GH_USER_TYPE  le type que donne `api user` (défaut : User)
+#   FAKE_GH_TOKENS     s'il est posé, une ligne par variable de jeton
+#                      (`GH_TOKEN`, `GITHUB_TOKEN`) que voit chaque commande
 #   FAKE_GH_PAGE_SIZE  la taille d'une page (défaut : 100)
 #   FAKE_GH_FAIL       fait échouer toute commande dont les arguments le contiennent,
 #   FAKE_GH_FAIL_CODE  avec ce code (défaut : 1)
@@ -32,6 +36,13 @@ fail() {
   echo "gh: $*" >&2
   exit 1
 }
+
+# Les variables de jeton que voit chaque commande, une par ligne.
+if [ -n "${FAKE_GH_TOKENS:-}" ]; then
+  for token in GH_TOKEN GITHUB_TOKEN; do
+    if [ -n "${!token+set}" ]; then echo "$token" >>"$FAKE_GH_TOKENS"; fi
+  done
+fi
 
 if [ -n "${FAKE_GH_FAIL:-}" ] && [[ "$*" == *"$FAKE_GH_FAIL"* ]]; then
   echo "gh: simulated failure" >&2
@@ -64,6 +75,14 @@ pr_list() { # --base|--head branche --state open --json number
   [ "$3 $4 $5 $6" = "--state open --json number" ] || fail "pr list: unexpected arguments: $*"
   j -c --arg key "$key" --arg branch "$2" \
     '[.prs[] | select(.state == "OPEN" and .[$key] == $branch) | {number}]' "$world"
+}
+
+# Le corps d'une PR remplacé, et gardé.
+pr_edit() { # numéro --body corps
+  [ "$2" = "--body" ] && [ $# -eq 3 ] || fail "pr edit: unexpected arguments: $*"
+  j -e --argjson n "$1" 'any(.prs[]; .number == $n)' "$world" >/dev/null || fail "no pull requests found for #$1"
+  update_world '(.prs[] | select(.number == $n) | .body) = $body' --argjson n "$1" --arg body "$3"
+  j -nc --argjson n "$1" --arg body "$3" '{on: "body", pr: $n, body: $body}' >>"$log"
 }
 
 # Les éléments que paginent les requêtes, sous leur forme GraphQL.
@@ -135,6 +154,39 @@ post() { # opération
       j -nc --arg id "${vars[thread]}" --arg body "${vars[body]}" '{on: "thread", id: $id, body: $body}' >>"$log"
       j -nc --arg url "$url" '{data: {addPullRequestReviewThreadReply: {comment: {url: $url}}}}'
       ;;
+    CreateReview)
+      j -e --arg id "${vars[pr]}" 'any(.prs[]; .id == $id)' "$world" >/dev/null \
+        || fail "Could not resolve to a node with the global id of '${vars[pr]}'"
+      update_world '(.prs[] | select(.id == $id) | .reviews) += [{id: ("PRR_posted_" + $n), author: {login: $user}, body: "", state: "PENDING", url: $url, submittedAt: null}]' \
+        --arg id "${vars[pr]}" --arg n "$n" --arg user "$user" --arg url "$url"
+      j -nc --arg id "${vars[pr]}" --arg review "PRR_posted_$n" '{on: "review", action: "create", pr: $id, review: $review}' >>"$log"
+      j -nc --arg review "PRR_posted_$n" '{data: {addPullRequestReview: {pullRequestReview: {id: $review}}}}'
+      ;;
+    ReplyInReview)
+      j -e --arg id "${vars[thread]}" 'any(.prs[].threads[]; .id == $id)' "$world" >/dev/null \
+        || fail "Could not resolve to a node with the global id of '${vars[thread]}'"
+      update_world '(.prs[].threads[] | select(.id == $id) | .comments) += [{author: {login: $user}, body: $body, url: $url, review: $review}]' \
+        --arg id "${vars[thread]}" --arg user "$user" --arg body "${vars[body]}" --arg url "$url" --arg review "${vars[review]}"
+      j -nc --arg id "${vars[thread]}" --arg review "${vars[review]}" --arg body "${vars[body]}" '{on: "thread", id: $id, review: $review, body: $body}' >>"$log"
+      j -nc --arg url "$url" '{data: {addPullRequestReviewThreadReply: {comment: {url: $url}}}}'
+      ;;
+    SubmitReview)
+      update_world '(.prs[].reviews[] | select(.id == $review)) |= (.state = ({COMMENT: "COMMENTED", APPROVE: "APPROVED", REQUEST_CHANGES: "CHANGES_REQUESTED"}[$event]) | .body = $body)' \
+        --arg review "${vars[review]}" --arg event "${vars[event]}" --arg body "${vars[body]}"
+      j -nc --arg review "${vars[review]}" --arg event "${vars[event]}" --arg body "${vars[body]}" '{on: "review", action: "submit", review: $review, event: $event, body: $body}' >>"$log"
+      j -c --arg review "${vars[review]}" '{data: {submitPullRequestReview: {pullRequestReview: (.prs[].reviews[] | select(.id == $review) | {url, state})}}}' "$world"
+      ;;
+    DeleteReview)
+      update_world '(.prs[].reviews) |= map(select(.id != $review)) | (.prs[].threads[].comments) |= map(select(.review != $review))' \
+        --arg review "${vars[review]}"
+      j -nc --arg review "${vars[review]}" '{on: "review", action: "delete", review: $review}' >>"$log"
+      j -nc '{data: {deletePullRequestReview: {clientMutationId: null}}}'
+      ;;
+    ResolveThread)
+      update_world '(.prs[].threads[] | select(.id == $id) | .isResolved) = true' --arg id "${vars[thread]}"
+      j -nc --arg id "${vars[thread]}" '{on: "resolve", id: $id}' >>"$log"
+      j -nc '{data: {resolveReviewThread: {thread: {isResolved: true}}}}'
+      ;;
     CommentOnPr)
       j -e --arg id "${vars[subject]}" 'any(.prs[]; .id == $id)' "$world" >/dev/null \
         || fail "Could not resolve to a node with the global id of '${vars[subject]}'"
@@ -172,7 +224,7 @@ api_graphql() {
   case $operation in
     LayerThreads | LayerReviews | LayerComments | ThreadComments) paged "$operation" ;;
     Element) element ;;
-    ReplyInThread | CommentOnPr) post "$operation" ;;
+    ReplyInThread | CommentOnPr | CreateReview | ReplyInReview | SubmitReview | DeleteReview | ResolveThread) post "$operation" ;;
     *) fail "api graphql: unknown operation: ${operation:-none}" ;;
   esac
 }
@@ -180,6 +232,8 @@ api_graphql() {
 case "${1:-} ${2:-}" in
   "pr view") shift 2 && pr_view "$@" ;;
   "pr list") shift 2 && pr_list "$@" ;;
+  "pr edit") shift 2 && pr_edit "$@" ;;
   "api graphql") shift 2 && api_graphql "$@" ;;
+  "api user") j -nc --arg login "$user" --arg type "${FAKE_GH_USER_TYPE:-User}" '{login: $login, type: $type}' ;;
   *) fail "unexpected command: $*" ;;
 esac

@@ -15,7 +15,7 @@ Run `git`, `gh` and the script as your instructions say, through the identity wr
 
 ## The script
 
-`bash <this skill's directory>/scripts/rework-stack.sh`, whose header gives its commands, outputs and codes. It is the only way the rework reads the stack's exchanges and posts its answers and back-references, since it alone holds the rule of what is pending and the agent's mark.
+`bash <this skill's directory>/scripts/rework-stack.sh`, whose header gives its commands, outputs and codes. It is the only way the rework reads the stack's exchanges and posts its answers and back-references, since it alone holds the rule of what is pending, and marks what it posts with the agent's mark.
 
 - `pending <PR>`: the stack, bottom to top, each layer with its past `reviewers` and either the reason it is `skipped` (`approved`, `draft`, `above draft`) or its `pending` elements.
 - `reply <element> <body>`: answers an element where it was posted.

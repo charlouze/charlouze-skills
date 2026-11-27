@@ -92,6 +92,10 @@ _Avoid_ : ruling, choix d'implémentation
 Un endroit du diff où le relecteur, en le lisant seul, pourrait passer à côté de quelque chose ou ne pas être d'accord, que l'agent lui signale sur sa ligne.
 _Avoid_ : remarque, note de revue
 
+**Vérification manuelle** (*Manual check*) :
+Ce que l'humain vérifie à la main sur une couche, parce que ni les tests ni la revue ne le prouvent.
+_Avoid_ : test manuel, recette
+
 **Reprise** (*Rework*) :
 La passe où l'agent traite les commentaires de revue d'une pile, couche par couche.
 _Avoid_ : correction (c'est un `fixup!`), retours
@@ -99,6 +103,14 @@ _Avoid_ : correction (c'est un `fixup!`), retours
 **Élément en attente** (*Pending item*) :
 Ce que la reprise doit traiter : un fil de revue non résolu, un corps de revue ou un commentaire de PR, posé par un autre que l'agent sur une couche ni approuvée, ni draft, ni au-dessus d'une draft, et auquel l'agent n'a pas encore répondu. Seul l'humain résout un fil.
 _Avoid_ : fil en attente (un fil n'en est qu'un genre), commentaire non traité, retour ouvert
+
+**Verdict** (*Verdict*) :
+Ce que l'humain statue, en revue guidée, sur un point d'attention, un arbitrage ou une vérification manuelle : l'accepter, ou ce qu'il faut changer.
+_Avoid_ : avis (celui de l'agent), décision
+
+**Revue guidée** (*Guided review*) :
+La passe de revue que l'humain mène en session avec l'agent sur les points d'attention, les arbitrages et les vérifications manuelles d'une pile, et dont l'agent poste les verdicts sous le nom de l'humain.
+_Avoid_ : walkthrough, débrief
 
 **Adoption** (*Adoption*) :
 La passe qui décrit dans sa spec fonctionnelle tout ce que fait déjà un contexte, depuis ses documents ou l'humain.

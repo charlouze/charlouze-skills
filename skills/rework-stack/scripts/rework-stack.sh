@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Le script de la reprise : il lit les éléments en attente d'une pile, et y
-# répond. Il est le seul à lire les échanges d'une pile sur GitHub, et le seul à
-# y poster ce qu'une reprise lit ensuite comme un message de l'agent (réponses et
-# renvois) : la marque de l'agent et la règle de ce qui est en attente ne vivent
-# qu'ici. La pile elle-même, sa forme et les couches sautées, il la lit par
-# `scripts/stack.sh`, à la racine du plugin.
+# répond. Il est le seul à lire les éléments en attente d'une pile sur GitHub, et
+# le seul à y poster ce qu'une reprise lit ensuite comme un message de l'agent
+# (réponses et renvois) : la règle de ce qui est en attente ne vit qu'ici. La
+# marque de l'agent et la lecture des fils de revue, il les tient de
+# `scripts/threads.sh`, à la racine du plugin, qu'il partage avec
+# `guided-review.sh`, le script de la revue guidée. La pile elle-même, sa forme
+# et les couches sautées, il la lit par `scripts/stack.sh`.
 #
 #   rework-stack.sh pending <PR>
 #   rework-stack.sh reply <element> <body>
@@ -81,64 +83,17 @@ j() { jq "$@" | tr -d '\r'; }
 
 j -n 1 >/dev/null 2>&1 || leave 1 "rework-stack.sh: jq not found"
 
-# La marque de l'agent, au début de chacun de ses messages.
-mark='🤖'
-
-# Le message de l'agent, en jq.
-jq_by_agent='def by_agent: (.body // "") | startswith($mark);'
-
 pr_view() { # numéro champs
   gh pr view "$1" --json "$2"
 }
 
-# Le script qui lit la pile, partagé avec la finalisation.
-stack_script="$(dirname "${BASH_SOURCE[0]}")/../../../scripts/stack.sh"
-
-# Les nœuds d'une connexion d'une PR (fils, revues, commentaires), tous lus.
-pr_connection() { # numéro opération connexion champs
-  gh api graphql --paginate -F owner='{owner}' -F repo='{repo}' -F number="$1" -f query="
-    query $2(\$owner: String!, \$repo: String!, \$number: Int!, \$endCursor: String) {
-      repository(owner: \$owner, name: \$repo) {
-        pullRequest(number: \$number) {
-          $3(first: 100, after: \$endCursor) {
-            pageInfo { hasNextPage endCursor }
-            nodes { $4 }
-          }
-        }
-      }
-    }" | j -c --arg connection "$3" '.data.repository.pullRequest[$connection].nodes[]'
-}
-
-# Les fils de revue d'une PR, chacun avec tous ses messages.
-threads() { # numéro
-  local thread longer
-  pr_connection "$1" LayerThreads reviewThreads '
-    id isResolved path line originalLine
-    comments(first: 100) { totalCount nodes { author { login } body url createdAt } }' \
-    | while IFS= read -r thread; do
-      # Un fil plus long qu'une page : ses messages sont relus, tous.
-      longer=$(j '.comments.totalCount > (.comments.nodes | length)' <<<"$thread")
-      if [ "$longer" = true ]; then
-        thread=$({ echo "$thread" && thread_comments "$(j -r .id <<<"$thread")"; } \
-          | j -sc '.[0].comments.nodes = .[1:] | .[0]')
-      fi
-      echo "$thread"
-    done
-}
-
-thread_comments() { # identifiant
-  gh api graphql --paginate -f id="$1" -f query='
-    query ThreadComments($id: ID!, $endCursor: String) {
-      node(id: $id) {
-        ... on PullRequestReviewThread {
-          comments(first: 100, after: $endCursor) {
-            pageInfo { hasNextPage endCursor }
-            nodes { author { login } body url createdAt }
-          }
-        }
-      }
-    }' | j -c '.data.node.comments.nodes[]'
-}
+# Les scripts partagés, à la racine du plugin : celui qui lit la pile, avec la
+# revue guidée et la finalisation ; la marque et la lecture des échanges d'une
+# PR, avec la revue guidée.
+shared="$(dirname "${BASH_SOURCE[0]}")/../../../scripts"
+stack_script="$shared/stack.sh"
+# shellcheck source=../../../scripts/threads.sh
+source "$shared/threads.sh"
 
 # Les relecteurs passés d'une PR, hors son auteur, en JSON.
 reviewers() { # numéro

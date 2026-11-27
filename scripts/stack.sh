@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Lit une pile sur GitHub : sa forme, l'approbation de chacune de ses couches et
 # celles qui sont sautées. Il est le seul à les lire, pour les skills qui
-# l'appellent, la reprise (`rework-stack`, par `rework-stack.sh pending`) et la
+# l'appellent, la reprise (`rework-stack`, par `rework-stack.sh pending`), la
+# revue guidée (`guided-review`, par `guided-review.sh notes`) et la
 # finalisation (`finalize-stack`) : le parcours de la pile, la règle
 # d'approbation et celle des couches sautées ne vivent qu'ici. Il ne lit aucun
 # échange (fils, revues, commentaires).
