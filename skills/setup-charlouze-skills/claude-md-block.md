@@ -78,7 +78,8 @@ When you run `/implement-spec`, deliver the change spec as one stack of pull req
   - each layer with many points of attention, beyond about five: its ticket was likely too big, or underspecified;
   - the stopped tickets: each one's question and its draft layer's link;
   - each ticket not taken, with its reason, and its branch when it holds work;
-  - when the main repository was left with changes at the end: the branch it is on, and the stash that holds the changes set aside at launch, if any.
+  - when the main repository was left with changes at the end: the branch it is on, and the stash that holds the changes set aside at launch, if any;
+  - last, the command `/guided-review <top pull request>`, to run in a new session.
 
   Your final message points at that comment.
 
